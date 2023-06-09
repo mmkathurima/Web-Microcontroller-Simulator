@@ -1,0 +1,372 @@
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+a, .btn-link {
+    color: #0366d6;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+
+#parent {
+    width: 75%;
+    height: 500px;
+    display: inline-block;
+    position: relative;
+}
+
+#testVectorEditorParent {
+    height: 400px;
+    display: inline-block;
+    position: relative;
+}
+
+.smParent:nth-child(-n+2) {
+    width: 28vw;
+}
+
+.smParent {
+    height: 250px;
+    display: inline-block;
+    position: relative;
+}
+
+#editor, .editor, #testVectorEditor {
+    position: absolute;
+    top: 2.5rem;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.ace_gutter-cell.ace_breakpoint {
+    border-radius: 20px 0 0 20px;
+    box-shadow: 0px 0px 6px 6px #D0342C inset;
+}
+
+.msim {
+    margin-bottom: 2em;
+}
+
+.form-check {
+    display: flex;
+}
+
+.form-check-label.switch-on {
+    margin-left: .5rem;
+}
+
+.form-check-label.switch-off, .id-label-A {
+    order: -1; /* Places the "Off" label before the switch button */
+}
+
+.id-label-A {
+    margin: 0 1rem 2rem 0;
+}
+
+.id-label-B {
+    margin-left: 1rem;
+}
+
+#A0, #A1, #A2, #A3, #A4, #A5, #A6, #A7 {
+    margin-left: .5rem;
+}
+
+.form-switch {
+    padding-left: 1rem;
+}
+
+.led-box {
+    margin-bottom: 2rem;
+}
+
+.sound-box {
+    margin-bottom: 1rem;
+}
+
+.form-check.form-switch, .led-box, .sound-box {
+    transform: scale(1.1);
+}
+
+.led {
+    font-size: 1.5em;
+    box-sizing: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.75);
+    margin: 0;
+    position: relative;
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    background: #808080;
+    border-radius: 50%;
+    vertical-align: text-bottom;
+    box-shadow: inset 0.25em 0.25em 0.25em rgba(255, 255, 255, 0.25), inset -0.25em -0.25em 0.25em 0.5em rgba(0, 0, 0, 0.25), inset 1em 0.5em 0.5em rgba(0, 0, 0, 0.5);
+}
+
+    .led:before {
+        content: '';
+        border-radius: 50%;
+        display: block;
+        width: 0.25em;
+        height: 0.25em;
+        background: #fff;
+        opacity: 0.1;
+        margin-top: 0.2em;
+        margin-left: 0.2em;
+        mix-blend-mode: overlay;
+    }
+
+    .led.led-xs {
+        font-size: 50%;
+    }
+
+    .led.led-sm {
+        font-size: 80%;
+    }
+
+    .led.on {
+        background: #adff2f !important;
+        box-shadow: 0 0 0.25em 0.1em, 0 0 1em 0.5em;
+        border: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+.myMarker {
+    position: absolute;
+    background: rgba(100, 200, 100, 0.5);
+    z-index: 20;
+}
+
+#term {
+}
+
+.tbl {
+    max-height: 28rem;
+    overflow-y: auto;
+    overflow-x: scroll;
+}
+
+main {
+    /*overflow-x: clip;*/
+}
+
+
+/* Material switch begin */
+.pure-material-switch {
+    z-index: 0;
+    position: relative;
+    display: inline-block;
+    color: rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.87);
+    font-family: var(--pure-material-font, "Roboto", "Segoe UI", BlinkMacSystemFont, system-ui, -apple-system);
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+    /* Input */
+    .pure-material-switch > input {
+        appearance: none;
+        -moz-appearance: none;
+        -webkit-appearance: none;
+        z-index: -1;
+        position: absolute;
+        right: 6px;
+        top: -8px;
+        display: block;
+        margin: 0;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        background-color: rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.38);
+        outline: none;
+        opacity: 0;
+        transform: scale(1);
+        pointer-events: none;
+        transition: opacity 0.3s 0.1s, transform 0.2s 0.1s;
+    }
+
+    /* Span */
+    .pure-material-switch > span {
+        display: inline-block;
+        width: 100%;
+        cursor: pointer;
+    }
+
+        /* Track */
+        .pure-material-switch > span::before {
+            content: "";
+            float: right;
+            display: inline-block;
+            margin: 5px 0 5px 10px;
+            border-radius: 7px;
+            width: 36px;
+            height: 14px;
+            background-color: rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.38);
+            vertical-align: top;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        /* Thumb */
+        .pure-material-switch > span::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            right: 16px;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            background-color: rgb(var(--pure-material-onprimary-rgb, 255, 255, 255));
+            box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+    /* Checked */
+    .pure-material-switch > input:checked {
+        right: -10px;
+        background-color: rgb(var(--pure-material-primary-rgb, 33, 150, 243));
+    }
+
+        .pure-material-switch > input:checked + span::before {
+            background-color: rgba(var(--pure-material-primary-rgb, 33, 150, 243), 0.6);
+        }
+
+        .pure-material-switch > input:checked + span::after {
+            background-color: rgb(var(--pure-material-primary-rgb, 33, 150, 243));
+            transform: translateX(16px);
+        }
+
+    /* Hover, Focus */
+    .pure-material-switch:hover > input {
+        opacity: 0.04;
+    }
+
+    .pure-material-switch > input:focus {
+        opacity: 0.12;
+    }
+
+    .pure-material-switch:hover > input:focus {
+        opacity: 0.16;
+    }
+
+    /* Active */
+    .pure-material-switch > input:active {
+        opacity: 1;
+        transform: scale(0);
+        transition: transform 0s, opacity 0s;
+    }
+
+        .pure-material-switch > input:active + span::before {
+            background-color: rgba(var(--pure-material-primary-rgb, 33, 150, 243), 0.6);
+        }
+
+    .pure-material-switch > input:checked:active + span::before {
+        background-color: rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.38);
+    }
+
+    /* Disabled */
+    .pure-material-switch > input:disabled {
+        opacity: 0;
+    }
+
+        .pure-material-switch > input:disabled + span {
+            color: rgb(var(--pure-material-onsurface-rgb, 0, 0, 0));
+            opacity: 0.38;
+            cursor: default;
+        }
+
+            .pure-material-switch > input:disabled + span::before {
+                background-color: rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.38);
+            }
+
+    .pure-material-switch > input:checked:disabled + span::before {
+        background-color: rgba(var(--pure-material-primary-rgb, 33, 150, 243), 0.6);
+    }
+
+/* Material switch end */
+
+
+strong {
+    font-size: 1.4em;
+}
+
+.flex-container {
+    display: flex;
+    flex-direction: column;
+}
+
+th {
+    position: sticky !important;
+    top: 0;
+    background-color: rgba(150, 150, 150, .9) !important;
+    /* color: #fff; */
+}
+
+.push-button {
+    width: 35px;
+    height: 35px;
+    background-color: #CCCCCC;
+    border: none;
+    border-radius: 50%;
+    box-shadow: inset 0px 2px 5px rgba(0, 0, 0, 0.3), 0px 2px 5px rgba(0, 0, 0, 0.2);
+    outline: none;
+    cursor: pointer;
+    position: relative;
+}
+
+    .push-button::before {
+        content: "";
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        width: 25px;
+        height: 25px;
+        background-color: #eee;
+        border-radius: 50%;
+        box-shadow: inset 0px 2px 5px rgba(0, 0, 0, 0.3), 0px 2px 5px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    .push-button:active::before {
+        background-color: #bbb;
+        box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.3), 0px 1px 3px rgba(0, 0, 0, 0.2);
+    }

@@ -1,0 +1,16 @@
+﻿@page "/"
+@inject IJSRuntime js
+@using Microsoft.AspNetCore.Components.Web
+
+<MicrocontrollerSimulator />
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await js.InvokeAsync<IJSObjectReference>("import", "./js/index.js");
+        }
+    }
+
+}

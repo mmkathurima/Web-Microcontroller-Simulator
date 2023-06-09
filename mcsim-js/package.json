@@ -1,0 +1,21 @@
+{
+  "name": "mc-sim",
+  "version": "1.0.0",
+  "scripts": {
+    "viteDev": "vite build",
+    "webpackDev": "webpack build --mode development"
+  },
+  "dependencies": {
+    "color": "^4.2.3",
+    "uuid": "^9.0.0",
+    "color-hash": "^2.0.2",
+    "fabric": "3.6.3",
+    "strftime": "^0.10.1"
+  },
+  "devDependencies": {
+    "webpack": "^5.82.1",
+    "webpack-cli": "^5.1.1",
+    "html-webpack-plugin": "^5.5.1",
+    "vite": "^4.3.8"
+  }
+}

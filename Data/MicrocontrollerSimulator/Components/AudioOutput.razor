@@ -1,0 +1,42 @@
+﻿@inject IJSRuntime js
+
+<div class="sound-box">
+    @if (this.play)
+    {
+        <MudIcon Icon="@Icons.Material.Filled.VolumeUp" Size="Size.Large" />
+    }
+    else
+    {
+        <MudIcon Icon="@Icons.Material.Filled.VolumeMute" Size="Size.Large" />
+    }
+    <audio hidden src="@Src" id="@ID" loop></audio>
+    <span class="id-label-B"><b>@Label</b></span>
+</div>
+
+@code {
+    public string Tag { get; set; } = "Off";
+
+    [Parameter] public string Label { get; set; }
+    [Parameter] public string ID { get; set; }
+    [Parameter] public string Src { get; set; }
+    private bool play = false;
+
+    public async Task ToggleSound(int index)
+    {
+        if (this.play)
+            await this.js.InvokeVoidAsync("stopAudio", index);
+        else
+            await this.js.InvokeVoidAsync("playAudio", index);
+        this.play = !this.play;
+        await this.InvokeAsync(this.StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await this.js.InvokeVoidAsync("loadAudio", this.ID);
+        }
+    }
+
+}

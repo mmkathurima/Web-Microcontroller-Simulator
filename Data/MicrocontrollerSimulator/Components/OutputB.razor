@@ -1,0 +1,18 @@
+﻿@inject IJSRuntime js
+
+<div class="led-box">
+    <div class="led" style="background: #ff4500; color: #adff2f;" id="@ID"></div>
+    <span class="id-label-B"><b>@Label</b></span>
+</div>
+
+@code {
+    public string Tag { get; set; } = "Off";
+
+    [Parameter] public string Label { get; set; }
+    [Parameter] public string ID { get; set; }
+
+    public async Task ToggleLed()
+    {
+        await js.InvokeVoidAsync("toggleLed", this.ID);
+    }
+}

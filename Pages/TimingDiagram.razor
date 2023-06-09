@@ -1,0 +1,108 @@
+﻿@page "/timing"
+@inject IJSRuntime js
+
+<PageTitle>Timing Diagram Generator</PageTitle>
+
+<h3>Timing Diagram Generator</h3>
+
+<MudFileUpload T="IBrowserFile" Accept=".json" FilesChanged="UploadFile" MaximumFileCount="100">
+    <ButtonTemplate>
+        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload" for="@context">
+            Upload chart JSON
+        </MudButton>
+    </ButtonTemplate>
+</MudFileUpload>
+@if (file != null)
+{
+    <MudList>
+        <MudListItem Icon="@Icons.Material.Filled.AttachFile">
+            @file.Name <code>@(file.Size / 1024L) KB</code>
+        </MudListItem>
+    </MudList>
+}
+<br />
+<PlotlyChart style="height: 60vh; min-height: 350px" Id="chart" @bind-Config="config" @bind-Layout="layout" @bind-Data="chartData" @ref="chart" />
+
+@code {
+    private PlotlyChart chart;
+    private List<string> pinStr = Enumerable.Range(0, 16)
+        .Select(x => x < 8 ? string.Format("A{0}", x) : string.Format("B{0}", x - 8))
+        .ToList();
+    private IList<ITrace> chartData = new List<ITrace>();
+    private IBrowserFile file;
+    private Config config = new Config()
+        {
+            Responsive = true,
+            ScrollZoom = ScrollZoomFlag.True
+        };
+    private Layout layout =  new Layout()
+        {
+            Title = new Plotly.Blazor.LayoutLib.Title()
+            {
+                Text = "Timing Diagram"
+            },
+            ShowLegend = false,
+            Legend = new Legend()
+            {
+                TraceOrder = TraceOrderFlag.Reversed
+            },
+            YAxis = new[] {
+            new YAxis()
+            {
+                FixedRange = true,
+                TickVals = new List<object>(),
+                TickText = new List<object>()
+            }
+        },
+            XAxis = new[] {
+            new XAxis()
+            {
+                Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title()
+                {
+                    Text = "Time (ms)"
+                }
+            }
+        }
+        };
+    private dynamic settings = new
+    {
+        YDelta = 1,
+        YSpacing = 1,
+        ShowStartLine = true,
+        ShowStopLine = true
+    };
+
+    private async void UploadFile(IBrowserFile file)
+    {
+        try
+        {
+            this.file = file;
+            await using (System.IO.Stream stream = this.file.OpenReadStream(1024 * 1024))
+            {
+                using StreamReader reader = new StreamReader(stream);
+                Dictionary<string, (List<object> x, List<object> y)> timings = JsonConvert.DeserializeObject<Dictionary<string, (List<object> x, List<object> y)>>(await reader.ReadToEndAsync());
+                await this.InvokeAsync(async () => await this.chart.Clear());
+                for (int i = 0; i < pinStr.Count; i++)
+                {
+                    this.chartData.Add(new Scatter()
+                        {
+                            Name = pinStr[i],
+                            Mode = ModeFlag.Lines,
+                            X = timings[this.pinStr[i]].x.Prepend(0).ToArray(),
+                            Y = timings[this.pinStr[i]].y.Prepend(0).ToArray(),
+                            Fill = FillEnum.None
+                        });
+                }
+                this.chartData = MicrocontrollerSimulator.GetTracesFromTimingSeries(this.chartData, this.settings);
+                MicrocontrollerSimulator.ExtendLegendForTimingSeries(this.chartData.Cast<Scatter>().ToArray(), this.layout, this.settings);
+                await this.chart.Relayout();
+                foreach (ITrace x in this.chartData)
+                    await this.InvokeAsync(async () => await this.chart.AddTrace(x));
+            }
+        }
+        catch (JsonSerializationException)
+        {
+            await this.js.InvokeVoidAsync("window.alert", "Error: Check whether your uploaded JSON consists of valid timing diagram data.");
+        }
+    }
+}

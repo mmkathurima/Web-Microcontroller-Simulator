@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>State Machine Builder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+<div id="last_click_pos_container">X: 0, Y: 0</div>
+<div id="selected_state"></div>
+<input id="state_name_input" placeholder="state name..."/>
+<button id="add_state_btn">add state</button>
+<br/>
+<input id="event_name_input" placeholder="event name..."/>
+<button id="start_transition_btn">start transition</button>
+<button id="cancel_transition_btn">cancel</button>
+<br/>
+<button id="delete_btn">delete</button>
+<button id="gen_c">Generate C Code</button>
+<state-machine-editor id="smeditor" width="500" height="500"></state-machine-editor>
+<pre id="output"></pre>
+<script type="module">
+    window.addEventListener("DOMContentLoaded", function () {
+        const state = {
+            lastClickPos: {x: 0, y: 0},
+            selectedState: null,
+        };
+        window.states = [];
+        window.transitions = [];
+        const smEditor = document.getElementById('smeditor');
+        let transition;
+
+        const sm = {
+            initialState: 'idle',
+            rules: {},
+        };
+        const removeStateTransition = function () {
+            try {
+                if (state.selectedState) {
+                    smEditor.deleteState(state.selectedState.name);
+                    window.states = window.states.filter(x => x.Name !== state.selectedState.name);
+                    console.log("states array", window.states);
+                } else if (transition) {
+                    smEditor.deleteTransition(transition.id);
+                    window.transitions = window.transitions.filter(x => x.id !== transition.id);
+                    console.log("transition array", window.transitions)
+                }
+            } catch (e) {
+                smEditor.deleteTransition(transition.id);
+                window.transitions = window.transitions.filter(x => x.id !== transition.id);
+                console.log("transition array", window.transitions)
+                throw e;
+            }
+        }
+        const clickPosDiv = document.getElementById('last_click_pos_container');
+        const addStateBtn = document.getElementById('add_state_btn');
+        const stateNameInput = document.getElementById('state_name_input');
+        addStateBtn.addEventListener('click', () => {
+            if (stateNameInput.value.length > 0) {
+                smEditor.addState(stateNameInput.value, state.lastClickPos.x, state.lastClickPos.y);
+                const st = {
+                    Name: stateNameInput.value,
+                    forloop_enabled: false,
+                    loop: undefined,
+                    priority_enabled: false,
+                    Actions: ""
+                };
+                window.states.push(st);
+                console.log("new state", st);
+            }
+        });
+
+        const eventNameInput = document.getElementById('event_name_input');
+        const selectedStateDiv = document.getElementById('selected_state');
+        const startTransitionBtn = document.getElementById('start_transition_btn');
+        startTransitionBtn.addEventListener('click', () => {
+            if (state.selectedState && eventNameInput.value.length > 0) {
+                const trnstn = smEditor.startAddTransition(
+                    eventNameInput.value,
+                    state.selectedState.name,
+                    state.selectedState.x,
+                    state.selectedState.y
+                );
+                const tr = {
+                    id: trnstn.id,
+                    condition: eventNameInput.value,
+                    head: trnstn.src,
+                    tail: trnstn.dest,
+                    priority: 1,
+                    actions: "" //TODO: Add actions textarea
+                };
+                window.transitions.push(tr);
+                console.log("new transition", tr);
+            }
+        });
+
+        const deleteBtn = document.getElementById('delete_btn');
+        deleteBtn.addEventListener('click', () => {
+            console.log('delete', state, transition);
+            removeStateTransition();
+        });
+        const cancelTransitionBtn = document.getElementById('cancel_transition_btn');
+        cancelTransitionBtn.addEventListener('click', () => {
+            smEditor.stopAddTransition();
+        });
+
+        setInterval(() => {
+            smEditor.currentState = ['moving', 'idle'][Math.round(Math.random() * 2)];
+        }, 3000);
+
+        smEditor.stateMachine = sm;
+        smEditor.setCurrentState('moving');
+// state
+        smEditor.addEventListener('state:rightclick', (event) =>
+            console.log('state right click', event)
+        );
+        smEditor.addEventListener('state:click', (event) => {
+            console.log('state click', event);
+            state.selectedState = event.detail.state;
+            selectedStateDiv.innerText = event.detail.state.name;
+        });
+
+        smEditor.addEventListener('state:doubleclick', (event) =>
+            console.log('state double click', event)
+        );
+// transition
+        smEditor.addEventListener('transition:rightclick', (event) => {
+            console.log('transition right click', event);
+            transition = event.detail.transition;
+        });
+        smEditor.addEventListener('transition:click', (event) => {
+            console.log('transition click', event);
+            transition = event.detail.transition;
+        });
+        smEditor.addEventListener('transition:doubleclick', (event) => {
+            console.log('transition double click', event)
+            transition = event.detail.transition;
+        });
+// canvas events
+        smEditor.addEventListener('canvas:rightclick', (event) =>
+            console.log('canvas right click', event)
+        );
+        smEditor.addEventListener('canvas:click', (event) => {
+            console.log('canvas click', event);
+            const {x, y} = event.detail.canvas;
+            //
+            state.lastClickPos = {x, y};
+            clickPosDiv.innerText = `X: ${x}, Y: ${y}`;
+        });
+        smEditor.addEventListener('canvas:doubleclick', (event) =>
+            console.log('canvas double click', event)
+        );
+        smEditor.addEventListener('statemachine:change', (event) =>
+            console.log('state machine change', event.detail)
+        );
+
+        document.addEventListener("keydown", (event) => {
+            console.log(event);
+            if (event.keyCode === 46) {
+                //console.log("delete", event, state, transition);
+                removeStateTransition();
+            }
+        });
+    });
+</script>
+</body>
+</html>

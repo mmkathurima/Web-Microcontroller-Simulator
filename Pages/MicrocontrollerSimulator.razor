@@ -1,0 +1,394 @@
+﻿@inject IJSRuntime js
+@using mcsim.Data.MicrocontrollerSimulator.Components
+
+<PageTitle>Microcontroller Simulator @(file is not null ? " - " + file.Name : "")</PageTitle>
+
+    <h3>Microcontroller Simulator</h3>
+    <div class="msim">
+        <MudGrid>
+            <MudItem>
+                <MudStack Row="true">
+                <MudFileUpload T="IBrowserFile" Accept=".c" FilesChanged="UploadCode" MaximumFileCount="100">
+                    <ButtonTemplate>
+                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload" for="@context">
+                            Open
+                        </MudButton>
+                    </ButtonTemplate>
+                </MudFileUpload>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="RunCode">@runBtn</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!this.continueEnabled)" @onclick="Continue">Continue</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!this.stepEnabled)" @onclick="Step">Step</MudButton>
+                </MudStack>
+            </MudItem>
+            <MudSpacer />
+            <MudItem>
+                <MudTooltip Text="Execution Speed" Placement="Placement.Top">
+                    <MudSlider Size="Size.Medium" Disabled="ipsDisabled" TickMarks="true" Min="1" Max="5" @bind-Value="@Ips" TickMarkLabels="@ipsLevels"></MudSlider>
+                </MudTooltip>
+            </MudItem>
+            <MudItem>
+                <p><strong>@timeSpan.ToString(@"hh\:mm\:ss\.ffff")</strong></p>
+            </MudItem>
+        </MudGrid>
+        <MudGrid style="margin-top: 2em">
+            <MudItem>
+                @for (int i = 0; i <= 7; i++)
+            {
+                @if (this.PushButton)
+                {
+                    <AInput ID="@($"A{i}")" Label="@($"A{i} ")" @ref="A" PushButton="true" Hold="Hold" Release="Release"></AInput>
+                }
+                else
+                {
+                    <AInput ID="@($"A{i}")" Label="@($"A{i} ")" @ref="A" AClick="AClick"></AInput>
+                }
+            }
+            <MudCheckBox @bind-Checked="@PushButton" Label="Push Button" Color="Color.Primary" Disabled="pushButtonDisabled"></MudCheckBox>
+            <p><strong>@AValHex</strong></p>
+            <p><strong>@AValDec</strong></p>
+        </MudItem>
+        <MudItem id="parent">
+            <div id="editor" style="top: 1rem;"></div>
+        </MudItem>
+        <MudItem>
+            @for (int i = 0; i <= 7; i++)
+            {
+                @if (this.SoundOn)
+                {
+                    <AudioOutput ID="@($"audio{i}")" Label="@($"B{i} ")" Src="@($"audio/audio{i}.wav")" @ref="BAudio" />
+                }
+                else
+                {
+                    <OutputB ID="@($"B{i}")" Label="@($"B{i}")" @ref="B"></OutputB>
+                }
+            }
+            <MudCheckBox @bind-Checked="@SoundOn" Label="Sound" Color="Color.Primary"></MudCheckBox>
+            <p><strong>@BValHex</strong></p>
+            <p><strong>@BValDec</strong></p>
+        </MudItem>
+        <MudItem>
+            <MudCheckBox T="bool" @bind-Checked="NestedInterruptsEnabled" id="NestedInterruptsEnabled" Label="Enable Nested Interrupts"></MudCheckBox>
+        </MudItem>
+        <MudSpacer />
+        <MudItem>
+            <MudButton Color="Color.Primary" Disabled="indentDisabled" Variant="Variant.Outlined" @onclick="IndentCode">Reindent</MudButton>
+        </MudItem>
+    </MudGrid>
+    <MudGrid>
+        <MudItem>
+            <label>Symbols</label>
+            <div class="tbl">
+                <table class="table table-responsive table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Value</th>
+                            <th>Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (KeyValuePair<string, (string address, string value)> kv in this.symbols)
+                        {
+                            <tr>
+                                <td>@kv.Key</td>
+                                <td>@kv.Value.value</td>
+                                <td>@kv.Value.address</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </MudItem>
+        <MudItem id="term" style="width: 50%">
+            <MudGrid>
+                <MudItem>
+                    <label>Output</label>
+                </MudItem>
+                <MudSpacer />
+                <MudItem>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" @onclick="ClearTerminal">Clear</MudButton>
+                </MudItem>
+            </MudGrid>
+            <Xterm @ref="console" Options="consoleOptions" AddonIds="_addonIds" OnFirstRender="OnFirstRender" />
+        </MudItem>
+        <MudItem id="testVectorEditorParent">
+            <MudCheckBox T="bool" Checked="TestVectorEnabled" id="TestVectorEnabled" Label="Enable Test Vectors" @oninput="ToggleTestVector"></MudCheckBox>
+            @if (this.TestVectorEnabled)
+            {
+                <p>
+                    <div>Test Vectors</div>
+                    <div id="testVectorEditor" style="top: 6rem;"></div>
+                </p>
+            }
+        </MudItem>
+        <MudItem>
+            @if (this.exportDiagram)
+            {
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" @onclick="ExportTimingDiagram">Export Diagram</MudButton>
+            }
+            <PlotlyChart Id="chart" @bind-Config="config" @bind-Layout="layout" @bind-Data="chartData" @ref="chart" />
+        </MudItem>
+    </MudGrid>
+    <style>
+        #chart {
+            display: @(this.exportDiagram ? "block" : "none");
+        }
+    </style>
+</div>
+@*
+    <script type="module" src="smb_main.js"></script>
+    <script type="module" src="smb.js"></script>
+    <script type="module" src="msim_main.js"></script>
+    <script type="module" src="msim.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.21.0/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.21.0/ext-language_tools.min.js"></script>
+
+*@
+@code {
+    private string runBtn = "Run", AValHex = "= x00", AValDec = "A = 0",
+    BValHex = "= x00", BValDec = "B = 0", testVectorText;
+    private string fileName, fileText;
+    private bool running = false, continueEnabled = false, stepEnabled = false,
+    indentDisabled = false, soundOn = false, testVectorEnabled = false, testVectorReadOnly = false,
+    ipsDisabled = false, exportDiagram = false, pushButton = false, pushButtonDisabled = false,
+    nestedInterruptsEnabled;
+    private VM vm, vm_terminate;
+    private TimeSpan timeSpan;
+    private DateTime startTime;
+    private ConcurrentDictionary<string, (string address, string value)> symbols;
+    private int _ips = 3;
+    private uint ipp = 250;
+    private string[]? ipsLevels = { "Slowest", null, "Realtime", null, "Fastest" };
+    private MudButton formatter;
+    private IBrowserFile file;
+
+    private System.Threading.Timer timer;
+
+    private DotNetObjectReference<MicrocontrollerSimulator> aref;
+
+    private Xterm console;
+    private TerminalOptions consoleOptions = new TerminalOptions()
+        {
+            CursorStyle = CursorStyle.Bar,
+        };
+    private string[] _addonIds = { "xterm-addon-fit", };
+
+    private List<AInput> inputs = new List<AInput>();
+    private AInput A
+    {
+        set => this.inputs.Add(value);
+    }
+    private List<OutputB> outputs = new List<OutputB>();
+    private OutputB B
+    {
+        set => this.outputs.Add(value);
+    }
+    private List<AudioOutput> audioOutputs = new List<AudioOutput>();
+    private AudioOutput BAudio
+    {
+        set => this.audioOutputs.Add(value);
+    }
+
+    private async Task<string> EditorText()
+    {
+        return Convert.ToString(await js.InvokeAsync<object>("aceEditor.session.getValue"));
+    }
+
+    private async Task RunCode()
+    {
+        if (!this.running)
+        {
+            this.vm = new VM();
+            this.vm.vm = VMInterface.CreateVM();
+            this.fileName = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "hello.c");
+            this.fileText = await this.EditorText();
+            File.WriteAllText(this.fileName, this.fileText);
+            VMInterface.SetFilename(this.vm.vm, this.fileName);
+
+            using (new DialogCloser())
+            {
+                if (await this.DoCompile())
+                {
+                    VMInterface.SetIPP(this.vm.vm, this.ipp);
+                    this.indentDisabled = true;
+                    await this.js.InvokeVoidAsync("aceEditor.setReadOnly", true);
+                    await this.Run();
+                    this.runBtn = "Stop";
+                    this.ResetStopWatch();
+                    this.StartStopWatch(false);
+                    if (this.TestVectorEnabled)
+                        await RunInputVectors();
+                }
+            }
+        }
+        else
+        {
+            this.userStoppedExec = true;
+            await this.Stop();
+        }
+        this.running = !this.running;
+    }
+
+    private async Task Continue()
+    {
+        if (VMInterface.IsBroken(this.vm.vm) == 1)
+        {
+            await this.js.InvokeVoidAsync("removeAllMarkers");
+            VMInterface.Step(this.vm.vm);
+            VMInterface.SetUnBroken(this.vm.vm);
+            this.StartStopWatch(true);
+        }
+    }
+
+    private async Task Step()
+    {
+        VMInterface.AtBreakpoint(this.vm.vm);
+        VMInterface.Step(this.vm.vm);
+        await this.js.InvokeVoidAsync("removeAllMarkers");
+        this.Update(null);
+    }
+
+    private void AClick(AInput A)
+    {
+        Pins pin = A.ID switch
+        {
+            "A0" => Pins.A0,
+            "A1" => Pins.A1,
+            "A2" => Pins.A2,
+            "A3" => Pins.A3,
+            "A4" => Pins.A4,
+            "A5" => Pins.A5,
+            "A6" => Pins.A6,
+            "A7" => Pins.A7
+        };
+        if (A.Tag == "Off")
+        {
+            A.Tag = "On";
+            VMInterface.SetPin(vm.vm, pin, 1);
+            this.timings[A.ID].x.Add(this.timeSpan.TotalMilliseconds);
+            this.timings[A.ID].y.Add(true);
+        }
+        else
+        {
+            A.Tag = "Off";
+            VMInterface.SetPin(vm.vm, pin, 0);
+            this.timings[A.ID].x.Add(this.timeSpan.TotalMilliseconds);
+            this.timings[A.ID].y.Add(false);
+        }
+
+        this.UpdateAValue();
+    }
+
+    private void Hold(AInput A)
+    {
+        Pins pin = A.ID switch
+        {
+            "A0" => Pins.A0,
+            "A1" => Pins.A1,
+            "A2" => Pins.A2,
+            "A3" => Pins.A3,
+            "A4" => Pins.A4,
+            "A5" => Pins.A5,
+            "A6" => Pins.A6,
+            "A7" => Pins.A7
+        };
+        if (A.Tag == "Off")
+        {
+            A.Tag = "On";
+            VMInterface.SetPin(vm.vm, pin, 1);
+            this.timings[A.ID].x.Add(this.timeSpan.TotalMilliseconds);
+            this.timings[A.ID].y.Add(true);
+        }
+
+        this.UpdateAValue();
+    }
+
+    private void Release(AInput A)
+    {
+        Pins pin = A.ID switch
+        {
+            "A0" => Pins.A0,
+            "A1" => Pins.A1,
+            "A2" => Pins.A2,
+            "A3" => Pins.A3,
+            "A4" => Pins.A4,
+            "A5" => Pins.A5,
+            "A6" => Pins.A6,
+            "A7" => Pins.A7
+        };
+        if (A.Tag == "On")
+        {
+            A.Tag = "Off";
+            VMInterface.SetPin(vm.vm, pin, 0);
+            this.timings[A.ID].x.Add(this.timeSpan.TotalMilliseconds);
+            this.timings[A.ID].y.Add(false);
+        }
+
+        this.UpdateAValue();
+    }
+
+    private async Task IndentCode()
+    {
+        string code = await this.EditorText();
+        _ = await this.js.InvokeAsync<string>("aceEditor.session.setValue", new AStyleInterface().FormatSource(code, string.Empty));
+    }
+
+    private async Task ToggleTestVector(ChangeEventArgs e)
+    {
+        bool enabled = Convert.ToBoolean(e.Value);
+        this.TestVectorEnabled = enabled;
+        if (enabled)
+        {
+            await this.InvokeAsync(this.StateHasChanged);
+            await this.js.InvokeVoidAsync("initTestVectorEditor");
+            System.Diagnostics.Debug.WriteLine(this.testVectorText);
+        }
+    }
+
+    private async Task ClearTerminal()
+    {
+        await this.js.InvokeVoidAsync("writeClearEscape");
+    }
+
+    private async Task OnFirstRender()
+    {
+        await console.InvokeAddonFunctionVoidAsync("xterm-addon-fit", "fit");
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        this.symbols = new ConcurrentDictionary<string, (string address, string value)>();
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await js.InvokeVoidAsync("msimLoad");
+            this.vm = new VM();
+            this.vm.vm = VMInterface.CreateVM();
+            this.vm_terminate = new VM();
+            this.aref = DotNetObjectReference.Create(this);
+            await js.InvokeAsync<string>("SetDotNetHelper", this.aref);
+            VMInterface.SetIPP(this.vm.vm, this.ipp);
+
+            this.timings = new ConcurrentDictionary<string, (List<object> x, List<object> y)>();
+            for (int i = 0; i < pinStr.Count; i++)
+            {
+                this.timings.TryAdd(pinStr[i], (new List<object>() { 0 }, new List<object>() { 0 }));
+                this.chartData.Add(new Scatter()
+                    {
+                        Name = pinStr[i],
+                        Mode = ModeFlag.Lines,
+                        X = new List<object>() { 0 },
+                        Y = new List<object>() { 0 },
+                        Fill = FillEnum.None
+                    });
+            }
+
+            ExtendLegendForTimingSeries(this.chartData.Cast<Scatter>().ToArray(), this.layout, this.settings);
+            await this.chart.Relayout();
+        }
+    }
+}

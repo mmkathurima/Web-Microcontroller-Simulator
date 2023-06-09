@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mcsim", "mcsim.csproj", "{7BC34979-20E7-43F3-B203-71BD627F317E}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "mcsim-js", "mcsim-js\mcsim-js.esproj", "{715F949C-9C17-4A02-A3E0-18F82FAFDCD7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7BC34979-20E7-43F3-B203-71BD627F317E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BC34979-20E7-43F3-B203-71BD627F317E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BC34979-20E7-43F3-B203-71BD627F317E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BC34979-20E7-43F3-B203-71BD627F317E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{715F949C-9C17-4A02-A3E0-18F82FAFDCD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{715F949C-9C17-4A02-A3E0-18F82FAFDCD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{715F949C-9C17-4A02-A3E0-18F82FAFDCD7}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{715F949C-9C17-4A02-A3E0-18F82FAFDCD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{715F949C-9C17-4A02-A3E0-18F82FAFDCD7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{715F949C-9C17-4A02-A3E0-18F82FAFDCD7}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DC0571F7-BBB6-47C0-B6FE-CBE55C5A01F0}
+	EndGlobalSection
+EndGlobal

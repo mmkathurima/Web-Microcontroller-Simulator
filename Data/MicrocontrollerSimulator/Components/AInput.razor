@@ -1,0 +1,50 @@
+﻿<div class="form-check form-switch">
+    <span class="id-label-A"><b>@Label</b></span>
+    @if (this.PushButton)
+    {
+        <button class="push-button" disabled="@(this.Enabled ? null : "disabled")" id="@ID" @onpointerdown="() => Hold(this)" @onpointerup="() => Release(this)"></button>
+    }
+    else
+    {
+        <label class="pure-material-switch">
+            <input type="checkbox" disabled="@(this.Enabled ? null : "disabled")" id="@ID" @onclick="() => AClick(this)" @bind="Value">
+            <span></span>
+        </label>
+    }
+    <label class="form-check-label switch-off" for="switch">0</label>
+    <label class="form-check-label switch-on" for="switch">1</label>
+</div>
+
+
+@code {
+    public string Tag { get; set; } = "Off";
+    private bool value;
+    public bool Value
+    {
+        get => this.value;
+        set
+        {
+            this.Tag = value ? "On" : "Off";
+            this.value = value;
+        }
+    }
+    [Parameter]
+    public bool Enabled { get; set; } = true;
+    public bool Disabled
+    {
+        get => !this.Enabled;
+        set => this.Enabled = !value;
+    }
+    [Parameter]
+    public string Label { get; set; }
+    [Parameter, JsonIgnore]
+    public string ID { get; set; }
+    [Parameter]
+    public bool PushButton { get; set; } = false;
+    [Parameter, JsonIgnore]
+    public Action<AInput> AClick { get; set; }
+    [Parameter, JsonIgnore]
+    public Action<AInput> Hold { get; set; }
+    [Parameter, JsonIgnore]
+    public Action<AInput> Release { get; set; }
+}

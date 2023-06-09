@@ -1,0 +1,40 @@
+<html>
+<head>
+    <title>SME DEMO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="m-4">
+        <ul class="nav nav-tabs" id="myTab">
+            <li class="nav-item">
+                <a href="#msim" class="nav-link active" data-bs-toggle="tab">Microcontroller Simulator</a>
+            </li>
+            <li class="nav-item">
+                <a href="#smb" class="nav-link" data-bs-toggle="tab">State Machine Builder</a>
+            </li>
+            <li class="nav-item">
+                <a href="#td" class="nav-link" data-bs-toggle="tab">Timing Diagram</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="msim">
+                <iframe class="embed-responsive" src="msim.html"></iframe>
+            </div>
+            <div class="tab-pane fade" id="smb">
+                <iframe class="embed-responsive" src="smb.html"></iframe>
+            </div>
+            <div class="tab-pane fade" id="td">
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<style>
+    iframe {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+</html>
