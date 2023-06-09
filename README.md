@@ -13,16 +13,8 @@ It is currently a work in progress and thus buggy.
 The simulator requires the following software to be installed on your system:
 
 ### Building
-- .NET 6.0
+- .NET 7.0
 - Microsoft Visual Studio or a similar IDE for C# development
-- Windows Media Player Legacy for COM dependencies
-
-### Running
-- .NET 6.0 Desktop runtime x86
-- Windows Media Player Legacy
-- Visual C++ 2015 Redistributable
-
-This software tool currently works on Windows machines (7 and above) where the above dependencies are installed.
 
 # Installation
 To install the simulator, follow these steps:
@@ -35,7 +27,7 @@ To install the simulator, follow these steps:
 # Usage
 To use the simulator, follow these steps:
 
-1. Launch the simulator by running the executable file.
+1. Launch the simulator by running `dotnet run`.
 2. Load the microcontroller code and simulation configuration.
 3. Configure the input/output peripherals as needed.
 4. Start the simulation using the Run menu.
