@@ -71,7 +71,7 @@
         </MudItem>
         <MudSpacer />
         <MudItem>
-            <MudButton Color="Color.Primary" Disabled="indentDisabled" Variant="Variant.Outlined" @onclick="IndentCode">Reindent</MudButton>
+            <MudButton Color="Color.Tertiary" Disabled="indentDisabled" Variant="Variant.Outlined" @onclick="IndentCode">Reindent</MudButton>
         </MudItem>
     </MudGrid>
     <MudGrid>
@@ -106,12 +106,12 @@
                 </MudItem>
                 <MudSpacer />
                 <MudItem>
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" @onclick="ClearTerminal">Clear</MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Tertiary" @onclick="ClearTerminal">Clear</MudButton>
                 </MudItem>
             </MudGrid>
             <Xterm @ref="console" Options="consoleOptions" AddonIds="_addonIds" OnFirstRender="OnFirstRender" />
         </MudItem>
-        <MudItem id="testVectorEditorParent">
+        <MudItem id="testVectorEditorParent" style="width: 25%;">
             <MudCheckBox T="bool" Checked="TestVectorEnabled" id="TestVectorEnabled" Label="Enable Test Vectors" @oninput="ToggleTestVector"></MudCheckBox>
             @if (this.TestVectorEnabled)
             {
@@ -347,7 +347,7 @@
 
     private async Task ClearTerminal()
     {
-        await this.js.InvokeVoidAsync("writeClearEscape");
+        await this.js.InvokeVoidAsync("clrscrn");
     }
 
     private async Task OnFirstRender()

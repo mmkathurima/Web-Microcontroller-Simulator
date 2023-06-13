@@ -44,7 +44,7 @@ namespace mcsim.Pages
                 this.timings[key].y.Clear();
             }
 
-            await this.js.InvokeVoidAsync("writeClearEscape");
+            await this.js.InvokeVoidAsync("clrscrn");
             for (uint num = 0u; array.Length > 1 && num < array.Length - 1; num++)
             {
                 location += array[num];
@@ -144,7 +144,7 @@ namespace mcsim.Pages
             this.StateHasChanged();
             if (array2.Select(x => x.ToLower()).Contains(@"could not find include file ""rims.h"""))
             {
-                await this.js.InvokeVoidAsync("writeClearEscape");
+                await this.js.InvokeVoidAsync("clrscrn");
                 await DoCompile();
             }
             return flag;
@@ -229,6 +229,13 @@ namespace mcsim.Pages
             }
             preserve = GetTracesFromTimingSeries(preserve, this.settings);
             await this.InvokeAsync(async () => await this.chart.Clear());
+            if (this.fromVectors)
+            {
+                //ExtendLegendForTimingSeries(preserve.Cast<Scatter>().ToArray(), this.layout, this.settings);
+                //await this.chart.Relayout();
+                this.fromVectors = false;
+            }
+
             foreach (ITrace x in preserve)
                 await this.InvokeAsync(async () => await this.chart.AddTrace(x));
             this.exportDiagram = true;
@@ -299,13 +306,7 @@ namespace mcsim.Pages
         private bool SoundOn
         {
             get => this.soundOn;
-            set
-            {
-                if (value)
-                    this.outputs.Clear();
-                else this.audioOutputs.Clear();
-                this.soundOn = value;
-            }
+            set => this.soundOn = value;
         }
 
         private bool TestVectorEnabled
@@ -377,6 +378,7 @@ namespace mcsim.Pages
         {
             byte pin = VMInterface.GetPin(vm.vm, Pins.B);
             int[] range = Enumerable.Range(0, 8).Select(i => 1 << i).ToArray();
+
             if (this.SoundOn)
             {
                 for (int i = 0; i < this.audioOutputs.Count; i++)
@@ -398,9 +400,15 @@ namespace mcsim.Pages
                     this.timings[s].x.Add(this.timeSpan.TotalMilliseconds);
                     this.timings[s].y.Add(audio.Tag == "On");
                 }
+                this.outputs.Clear();
             }
             else
             {
+                for (int i = 0; i < this.audioOutputs.Count; i++)
+                {
+                    this.audioOutputs[i].Tag = "Off";
+                    await this.audioOutputs[i].Silence(i);
+                }
                 for (int i = 0; i < this.outputs.Count; i++)
                 {
                     if ((pin & range[i]) != 0 && this.outputs[i].Tag != "On")
@@ -420,6 +428,7 @@ namespace mcsim.Pages
                     this.timings[s].x.Add(this.timeSpan.TotalMilliseconds);
                     this.timings[s].y.Add(@out.Tag == "On");
                 }
+                this.audioOutputs.Clear();
             }
 
             string text = Convert.ToString(pin, 16);

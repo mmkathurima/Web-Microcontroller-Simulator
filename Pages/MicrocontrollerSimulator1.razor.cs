@@ -22,6 +22,7 @@ namespace mcsim.Pages;
 public partial class MicrocontrollerSimulator
 {
     private ConcurrentDictionary<string, (List<object> x, List<object> y)> timings;
+    private bool fromVectors = false;
     private List<string> pinStr = Enumerable.Range(0, 16)
         .Select(x => x < 8 ? string.Format("A{0}", x) : string.Format("B{0}", x - 8))
         .ToList();
@@ -254,6 +255,12 @@ public partial class MicrocontrollerSimulator
 
     private async Task RunInputVectors()
     {
+        foreach (string key in this.timings.Keys)
+        {
+            this.timings[key].x.Clear();
+            this.timings[key].y.Clear();
+        }
+
         this.testVectorText = Convert.ToString(await this.js.InvokeAsync<object>("testVectorEditor.session.getValue"));
         List<string> input = testVectorText.Split('\n').ToList();
         this.PushButton = false;
@@ -288,7 +295,6 @@ public partial class MicrocontrollerSimulator
                     if (current.ToUpper().Contains("GENERATETD"))
                     {
                         this.runFromInputVectorsThreadIsRunning = false;
-                        await this.js.InvokeVoidAsync("window.alert", "A timing diagram is automatically generated after every run.");
                         break;
                     }
                     if (current.ToUpper().Contains("WAIT"))
@@ -427,6 +433,7 @@ public partial class MicrocontrollerSimulator
                     }
                 }
             }
+            File.WriteAllLines("timings.csv", this.timings.Select(k => string.Format("{0},{1},,{2}", k.Key, string.Join(',', k.Value.x), string.Join(',', k.Value.y))));
         }
         catch (Exception ex2)
         {
@@ -444,7 +451,10 @@ public partial class MicrocontrollerSimulator
             this.inputs.First(y => y.ID == string.Format("A{0}", i)).Disabled = false;
 
         if (!this.running)
+        {
+            this.fromVectors = true;
             await this.Stop();
+        }
         this.runFromInputVectorsThreadIsRunning = true;
     }
 

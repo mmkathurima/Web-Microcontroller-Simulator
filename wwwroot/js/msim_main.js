@@ -150,6 +150,6 @@ function initTestVectorEditor() {
     }, 50);
 }
 
-function writeClearEscape() {
+function clrscrn() {
     XtermBlazor.getTerminalById(XtermBlazor._terminals.entries().next().value[0]).terminal.write("\x1bc");
 }

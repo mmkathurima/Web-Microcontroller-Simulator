@@ -31,6 +31,13 @@
         await this.InvokeAsync(this.StateHasChanged);
     }
 
+    public async Task Silence(int index)
+    {
+        await this.js.InvokeVoidAsync("stopAudio", index);
+        await this.InvokeAsync(this.StateHasChanged);
+        this.play = false;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
