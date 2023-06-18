@@ -8,16 +8,16 @@
         <MudGrid>
             <MudItem>
                 <MudStack Row="true">
-                <MudFileUpload T="IBrowserFile" Accept=".c" FilesChanged="UploadCode" MaximumFileCount="100">
-                    <ButtonTemplate>
-                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload" for="@context">
-                            Open
-                        </MudButton>
-                    </ButtonTemplate>
-                </MudFileUpload>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="RunCode">@runBtn</MudButton>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!this.continueEnabled)" @onclick="Continue">Continue</MudButton>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!this.stepEnabled)" @onclick="Step">Step</MudButton>
+                    <MudFileUpload T="IBrowserFile" Accept=".c" FilesChanged="UploadCode" MaximumFileCount="100">
+                        <ButtonTemplate>
+                            <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload" for="@context">
+                                Open
+                            </MudButton>
+                        </ButtonTemplate>
+                    </MudFileUpload>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="RunCode">@runBtn</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!this.continueEnabled)" @onclick="Continue">Continue</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!this.stepEnabled)" @onclick="Step">Step</MudButton>
                 </MudStack>
             </MudItem>
             <MudSpacer />
@@ -71,7 +71,7 @@
         </MudItem>
         <MudSpacer />
         <MudItem>
-            <MudButton Color="Color.Tertiary" Disabled="indentDisabled" Variant="Variant.Outlined" @onclick="IndentCode">Reindent</MudButton>
+            <MudButton Color="Color.Tertiary" Disabled="formatDisabled" Variant="Variant.Outlined" @onclick="FormatCode">Format</MudButton>
         </MudItem>
     </MudGrid>
     <MudGrid>
@@ -124,7 +124,7 @@
         <MudItem>
             @if (this.exportDiagram)
             {
-                <MudButton Variant="Variant.Outlined" Color="Color.Primary" @onclick="ExportTimingDiagram">Export Diagram</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Tertiary" @onclick="ExportTimingDiagram">Export Diagram</MudButton>
             }
             <PlotlyChart Id="chart" @bind-Config="config" @bind-Layout="layout" @bind-Data="chartData" @ref="chart" />
         </MudItem>
@@ -149,17 +149,16 @@
     BValHex = "= x00", BValDec = "B = 0", testVectorText;
     private string fileName, fileText;
     private bool running = false, continueEnabled = false, stepEnabled = false,
-    indentDisabled = false, soundOn = false, testVectorEnabled = false, testVectorReadOnly = false,
+    formatDisabled = false, soundOn = false, testVectorEnabled = false, testVectorReadOnly = false,
     ipsDisabled = false, exportDiagram = false, pushButton = false, pushButtonDisabled = false,
     nestedInterruptsEnabled;
     private VM vm, vm_terminate;
     private TimeSpan timeSpan;
     private DateTime startTime;
     private ConcurrentDictionary<string, (string address, string value)> symbols;
-    private int _ips = 3;
+    private int ips = 3;
     private uint ipp = 250;
     private string[]? ipsLevels = { "Slowest", null, "Realtime", null, "Fastest" };
-    private MudButton formatter;
     private IBrowserFile file;
 
     private System.Threading.Timer timer;
@@ -200,7 +199,7 @@
         {
             this.vm = new VM();
             this.vm.vm = VMInterface.CreateVM();
-            this.fileName = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "hello.c");
+            this.fileName = Path.Combine(Path.GetTempPath(), DateTime.Now.ToString("yyyyMMddHHmmssffff.c"));
             this.fileText = await this.EditorText();
             File.WriteAllText(this.fileName, this.fileText);
             VMInterface.SetFilename(this.vm.vm, this.fileName);
@@ -210,7 +209,7 @@
                 if (await this.DoCompile())
                 {
                     VMInterface.SetIPP(this.vm.vm, this.ipp);
-                    this.indentDisabled = true;
+                    this.formatDisabled = true;
                     await this.js.InvokeVoidAsync("aceEditor.setReadOnly", true);
                     await this.Run();
                     this.runBtn = "Stop";
@@ -225,6 +224,7 @@
         {
             this.userStoppedExec = true;
             await this.Stop();
+            File.Delete(this.fileName);
         }
         this.running = !this.running;
     }
@@ -327,10 +327,29 @@
         this.UpdateAValue();
     }
 
-    private async Task IndentCode()
+    private async Task FormatCode()
     {
-        string code = await this.EditorText();
-        _ = await this.js.InvokeAsync<string>("aceEditor.session.setValue", new AStyleInterface().FormatSource(code, string.Empty));
+        this.fileName = Path.Combine(Path.GetTempPath(), DateTime.Now.ToString("yyyyMMddHHmmssffff.c"));
+        this.fileText = await this.EditorText();
+        File.WriteAllText(this.fileName, this.fileText);
+        /*
+        * string code = await this.EditorText();
+        * _ = await this.js.InvokeAsync<string>("aceEditor.session.setValue", new AStyleInterface().FormatSource(code, string.Empty));
+        */
+        ProcessStartInfo startInfo = new ProcessStartInfo()
+            {
+                CreateNoWindow = false,
+                FileName = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "GC.exe"),
+                WindowStyle = ProcessWindowStyle.Hidden,
+                Arguments = string.Format("-file-\"{0}\" -tab-size-4 -no-tab_out- -space_if- -space_return- -stmt_break_alone- -stmt_concat_if_and_else- -stmt_concat_else_2_stmt- -no-stmt_concat_inline_class- -no-stmt_concat_switch- -stmt_brace_style_fct-2 -stmt_brace_style-2 -stmt_brace_style_class-2 -stmt_switch_style-4 -stmt_switch_eol-1 -stmt_class_indent-1 -stmt_namespace_indent- -stmt_extern_c_indent- -no-cmt_add_gc_tag- -no-cmt_add_file- -no-cmt_add_fct_def- -code_align_max_blanks-1 -pp_style-1 -pp_align_to_code", this.fileName)
+            };
+
+        using (Process process = Process.Start(startInfo))
+        {
+            await process.WaitForExitAsync();
+        }
+        await this.js.InvokeAsync<string>("aceEditor.session.setValue", await File.ReadAllTextAsync(this.fileName));
+        File.Delete(this.fileName);
     }
 
     private async Task ToggleTestVector(ChangeEventArgs e)

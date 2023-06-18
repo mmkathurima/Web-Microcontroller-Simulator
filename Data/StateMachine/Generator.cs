@@ -143,8 +143,8 @@ namespace mcsim.Data.StateMachine
         {
             string time = DateTime.Now.ToString("MM'/'dd'/'yyyy HH:mm:ss");
 
-            string text = "/*\r\nThis code was automatically generated using the Riverside-Irvine State machine Builder tool\r\n" +
-                "Version 2.9 --- " + time + " PST\r\n*/\r\n\r\n" + "#include \"rims.h\"\r\n\r\n";
+            string text = "/*\r\n* This code was automatically generated using the State Machine Builder tool\r\n* " +
+                "at " + time + "\r\n*/\r\n\r\n" + "#include \"rims.h\"\r\n\r\n";
 
             if (graph.GlobalCode.Length > 0)
             {

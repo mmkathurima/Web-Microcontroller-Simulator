@@ -192,7 +192,7 @@ namespace mcsim.Pages
         {
             this.stepEnabled = false;
             this.continueEnabled = false;
-            this.indentDisabled = false;
+            this.formatDisabled = false;
             this.runBtn = "Run";
             this.BValHex = "= x00";
             this.BValDec = "B = 0";
@@ -276,7 +276,7 @@ namespace mcsim.Pages
 
         private int Ips
         {
-            get => _ips;
+            get => this.ips;
             set
             {
                 uint num = value switch
@@ -289,7 +289,7 @@ namespace mcsim.Pages
                 };
                 VMInterface.SetIPP(this.vm.vm, num);
                 this.ipp = num;
-                _ips = value;
+                this.ips = value;
             }
         }
 

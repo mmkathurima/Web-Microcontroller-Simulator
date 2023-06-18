@@ -267,11 +267,13 @@ main {
     }
 
         .pure-material-switch > input:checked + span::before {
-            background-color: rgba(var(--pure-material-primary-rgb, 33, 150, 243), 0.6);
+            /*background-color: rgba(var(--pure-material-primary-rgb, 33, 150, 243), 0.6);*/
+            background-color: rgba(102, 221, 255, .6);
         }
 
         .pure-material-switch > input:checked + span::after {
-            background-color: rgb(var(--pure-material-primary-rgb, 33, 150, 243));
+            /*background-color: rgb(var(--pure-material-primary-rgb, 33, 150, 243));*/
+            background-color: #6df;
             transform: translateX(16px);
         }
 
