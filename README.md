@@ -1,23 +1,26 @@
 # mcsim
 The mcsim is a web application written using Blazor that simulates the behavior of microcontrollers for educational and research purposes.
+It also allows for generation of state machine and timing diagrams.
 It is currently a work in progress and thus buggy.
 
 ## Features
 - Simulation of various microcontroller architectures, including AVR and ARM.
-- Support for multiple programming languages, including C and assembly.
+- Support for embedded C programming.
 - Debugging features such as breakpoints, watchpoints, and step-by-step execution.
 - Customizable input/output peripherals, including LEDs, switches, speakers, 7 segment display, and serial communication.
 - Graphical user interface for easy simulation setup and control.
+- Generation of timing diagrams to visualize inputs and outputs.
+- Generation of state machine diagrams
+- Converting state machine diagrams to C code.
 
 # Requirements
 The simulator requires the following software to be installed on your system:
 
-### Building
 - .NET 7.0
 - Microsoft Visual Studio or a similar IDE for C# development
 
-# Installation
-To install the simulator, follow these steps:
+# Building and Running
+To build and run the simulator, follow these steps:
 
 1. Clone the repository to your local machine.
 2. Open the solution file in Visual Studio or another IDE that supports .NET development.
