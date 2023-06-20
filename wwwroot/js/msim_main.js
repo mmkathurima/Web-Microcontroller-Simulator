@@ -1,5 +1,5 @@
 ﻿var editor, aceEditor, aceRange, audioFiles = [],
-    testVectorEditor, testVectorRange;
+    testVectorEditor, testVectorRange, dpl6;
 const percentWidth = .6;
 
 function msimLoad() {
@@ -7,7 +7,8 @@ function msimLoad() {
     aceEditor = ace.edit("editor");
     aceRange = require('ace/range').Range;
 
-    aceEditor.session.setValue("#include \"rims.h\"\n\nint main() {\n    while (1) {\n        B = A;\n    }\n}")
+    //aceEditor.session.setValue("#include \"rims.h\"\n\nint main() {\n    while (1) {\n        B = A;\n    }\n}")
+    aceEditor.session.setValue("#include \"rims.h\"\n\nint main() {\n    while (1) {\n        B0 = A0 && A1;\n    }\n}")
     aceEditor.setTheme("ace/theme/sqlserver");
     //editorTheme();
     aceEditor.session.setMode("ace/mode/c_cpp");
@@ -60,6 +61,64 @@ function msimLoad() {
     window.addEventListener("resize", function (e) {
         aceEditor.resize();
     });
+}
+
+function renderSSD() {
+    window.setTimeout(function () {
+        dragElement(document.getElementById("dpl6").parentElement);
+        dpl6 = new js_display("dpl6", 1, 200, "red");
+        dpl6.sang = 8;
+        //dpl6.color("red", "green", "purple")
+    }, 300);
+}
+
+function renderDial() {
+    window.setTimeout(function () {
+        dragElement(document.getElementById("knob").parentElement);
+        $('#knob').jqxKnob({
+            value: 0,
+            min: 0,
+            max: 255,
+            startAngle: 120,
+            endAngle: 420,
+            snapToStep: true,
+            rotation: 'clockwise',
+            style: { stroke: '#dfe3e9', strokeWidth: 3, fill: { color: 'transparent', gradientType: "linear", gradientStops: [[0, 1], [50, 0.9], [100, 1]] } },
+            labels: {
+                offset: '88%',
+                step: 20,
+                visible: true,
+                formatFunction: function (label) {
+                    return label;
+                }
+            },
+            marks: {
+                colorRemaining: "#333",
+                colorProgress: "#2db2e4",
+                type: 'circle',
+                offset: '75%',
+                thickness: 2,
+                size: '1%',
+                majorSize: '2%',
+                majorInterval: 10,
+                minorInterval: 5
+            },
+            progressBar: {
+                size: '70%',
+                offset: '0%'
+            },
+            pointer: {
+                type: 'line', thickness: 4, style: { fill: "#00a4e1", stroke: "#00a4e1" },
+                size: '70%', offset: '0%'
+            }
+        }).on("change", function () {
+            let k = $("#knob").val();
+            //drawSSD(k);
+            $("#val").text(k);
+            window.dotNetHelper.invokeMethodAsync("SetDial", k);
+        });
+        $("#val").text($("#knob").val());
+    }, 300);
 }
 
 function editorTheme() {
@@ -150,6 +209,54 @@ function initTestVectorEditor() {
     }, 50);
 }
 
-function clrscrn() {
+function clrscr() {
     XtermBlazor.getTerminalById(XtermBlazor._terminals.entries().next().value[0]).terminal.write("\x1bc");
+}
+
+function dragElement(elmnt) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    if (document.getElementById(elmnt.id + "header")) {
+        // if present, the header is where you move the DIV from:
+        document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+    } else {
+        // otherwise, move the DIV from anywhere inside the DIV:
+        elmnt.onmousedown = dragMouseDown;
+    }
+
+    function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // get the mouse cursor position at startup:
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        //document.onmouseout = closeDragElement;
+        // call a function whenever the cursor moves:
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // calculate the new cursor position:
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        // set the element's new position:
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+        // stop moving when mouse button is released:
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+}
+
+function drawSSD(val) {
+    let l = val.toString(2).padStart(8, '0').split('').map(x => Number.parseInt(x)).reverse();
+    //console.log(l);
+    dpl6.tbl[0].draw_segm(l[0], l[2], l[5], l[6], l[4], l[1], l[3], 0);
 }

@@ -1,0 +1,19 @@
+﻿<div class="dialog" style="@Style">
+    <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
+    <div class="modalHeader">
+        @HeaderText
+        <span @onclick="CloseEvent">&times;</span>
+    </div>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter]
+    public string HeaderText { get; set; }
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    [Parameter]
+    public string Style { get; set; }
+    [Parameter]
+    public required Action CloseEvent { get; set; }
+}

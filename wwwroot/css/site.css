@@ -372,3 +372,52 @@ th {
         background-color: #bbb;
         box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.3), 0px 1px 3px rgba(0, 0, 0, 0.2);
     }
+
+
+.dialog {
+    position: absolute;
+    z-index: 1300;
+    border: 1px solid #000;
+    text-align: center;
+    backdrop-filter: blur(12px);
+}
+
+.modalHeader {
+    cursor: move;
+    z-index: 10;
+    border: 2px solid;
+    padding: .3em 0;
+}
+
+    .modalHeader span {
+        cursor: default;
+        font-size: 18pt;
+        margin: -.5rem .2rem 0 0;
+        float: right;
+    }
+
+.hidden {
+    display: none;
+}
+
+#dpl6 {
+    position: absolute;
+    top: 3rem;
+    left: 2rem;
+}
+
+#knob {
+    width: 100% !important;
+}
+
+#val {
+    position: absolute;
+    top: 16rem;
+    left: 6rem;
+}
+
+@supports not ((-webkit-backdrop-filter: none) or (backdrop-filter: none)) {
+    .dialog {
+        background-color: rgba(255, 255, 255, .8);
+    }
+}

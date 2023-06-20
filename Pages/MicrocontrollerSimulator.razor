@@ -5,34 +5,47 @@
 
     <h3>Microcontroller Simulator</h3>
     <div class="msim">
-        <MudGrid>
-            <MudItem>
-                <MudStack Row="true">
-                    <MudFileUpload T="IBrowserFile" Accept=".c" FilesChanged="UploadCode" MaximumFileCount="100">
-                        <ButtonTemplate>
-                            <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload" for="@context">
-                                Open
-                            </MudButton>
-                        </ButtonTemplate>
-                    </MudFileUpload>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="RunCode">@runBtn</MudButton>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!this.continueEnabled)" @onclick="Continue">Continue</MudButton>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!this.stepEnabled)" @onclick="Step">Step</MudButton>
-                </MudStack>
-            </MudItem>
-            <MudSpacer />
-            <MudItem>
-                <MudTooltip Text="Execution Speed" Placement="Placement.Top">
-                    <MudSlider Size="Size.Medium" Disabled="ipsDisabled" TickMarks="true" Min="1" Max="5" @bind-Value="@Ips" TickMarkLabels="@ipsLevels"></MudSlider>
-                </MudTooltip>
-            </MudItem>
-            <MudItem>
-                <p><strong>@timeSpan.ToString(@"hh\:mm\:ss\.ffff")</strong></p>
-            </MudItem>
-        </MudGrid>
-        <MudGrid style="margin-top: 2em">
-            <MudItem>
-                @for (int i = 0; i <= 7; i++)
+        @if (this.DialVisible)
+    {
+        <Dialog HeaderText="Dial Knob" style="height: 18rem; width: 13rem;" CloseEvent="DialClose">
+            <div class="knob" id="knob"></div>
+            <div id="val"></div>
+        </Dialog>
+    }
+    @if (this.SSDVisible)
+    {
+        <Dialog HeaderText="Seven Segment Display" style="height: 18rem; width: 13rem;top: 26rem;" CloseEvent="SSDClose">
+            <div id="dpl6"></div>
+        </Dialog>
+    }
+    <MudGrid>
+        <MudItem>
+            <MudStack Row="true">
+                <MudFileUpload T="IBrowserFile" Accept=".c" FilesChanged="UploadCode" MaximumFileCount="100">
+                    <ButtonTemplate>
+                        <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload" for="@context">
+                            Open
+                        </MudButton>
+                    </ButtonTemplate>
+                </MudFileUpload>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="RunCode">@runBtn</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!this.continueEnabled)" @onclick="Continue">Continue</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!this.stepEnabled)" @onclick="Step">Step</MudButton>
+            </MudStack>
+        </MudItem>
+        <MudSpacer />
+        <MudItem>
+            <MudTooltip Text="Execution Speed" Placement="Placement.Top">
+                <MudSlider Size="Size.Medium" Disabled="ipsDisabled" TickMarks="true" Min="1" Max="5" @bind-Value="@Ips" TickMarkLabels="@ipsLevels"></MudSlider>
+            </MudTooltip>
+        </MudItem>
+        <MudItem>
+            <p><strong>@timeSpan.ToString(@"hh\:mm\:ss\.ffff")</strong></p>
+        </MudItem>
+    </MudGrid>
+    <MudGrid style="margin-top: 2em">
+        <MudItem>
+            @for (int i = 0; i <= 7; i++)
             {
                 @if (this.PushButton)
                 {
@@ -43,7 +56,7 @@
                     <AInput ID="@($"A{i}")" Label="@($"A{i} ")" @ref="A" AClick="AClick"></AInput>
                 }
             }
-            <MudCheckBox @bind-Checked="@PushButton" Label="Push Button" Color="Color.Primary" Disabled="pushButtonDisabled"></MudCheckBox>
+            <MudCheckBox @bind-Checked="@PushButton" Label="Push Button" Disabled="pushButtonDisabled"></MudCheckBox>
             <p><strong>@AValHex</strong></p>
             <p><strong>@AValDec</strong></p>
         </MudItem>
@@ -62,9 +75,12 @@
                     <OutputB ID="@($"B{i}")" Label="@($"B{i}")" @ref="B"></OutputB>
                 }
             }
-            <MudCheckBox @bind-Checked="@SoundOn" Label="Sound" Color="Color.Primary"></MudCheckBox>
+            <MudCheckBox @bind-Checked="@SoundOn" Label="Sound"></MudCheckBox>
             <p><strong>@BValHex</strong></p>
             <p><strong>@BValDec</strong></p>
+        </MudItem>
+        <MudItem>
+            <MudCheckBox @bind-Checked="@DialVisible" Label="Show Dial" @oninput="DialVisibilityChanged"></MudCheckBox>
         </MudItem>
         <MudItem>
             <MudCheckBox T="bool" @bind-Checked="NestedInterruptsEnabled" id="NestedInterruptsEnabled" Label="Enable Nested Interrupts"></MudCheckBox>
@@ -72,6 +88,9 @@
         <MudSpacer />
         <MudItem>
             <MudButton Color="Color.Tertiary" Disabled="formatDisabled" Variant="Variant.Outlined" @onclick="FormatCode">Format</MudButton>
+        </MudItem>
+        <MudItem>
+            <MudCheckBox @bind-Checked="@SSDVisible" Label="Show Seven Segment Display" @oninput="SSDVisibilityChanged"></MudCheckBox>
         </MudItem>
     </MudGrid>
     <MudGrid>
@@ -145,269 +164,4 @@
 
 *@
 @code {
-    private string runBtn = "Run", AValHex = "= x00", AValDec = "A = 0",
-    BValHex = "= x00", BValDec = "B = 0", testVectorText;
-    private string fileName, fileText;
-    private bool running = false, continueEnabled = false, stepEnabled = false,
-    formatDisabled = false, soundOn = false, testVectorEnabled = false, testVectorReadOnly = false,
-    ipsDisabled = false, exportDiagram = false, pushButton = false, pushButtonDisabled = false,
-    nestedInterruptsEnabled;
-    private VM vm, vm_terminate;
-    private TimeSpan timeSpan;
-    private DateTime startTime;
-    private ConcurrentDictionary<string, (string address, string value)> symbols;
-    private int ips = 3;
-    private uint ipp = 250;
-    private string[]? ipsLevels = { "Slowest", null, "Realtime", null, "Fastest" };
-    private IBrowserFile file;
-
-    private System.Threading.Timer timer;
-
-    private DotNetObjectReference<MicrocontrollerSimulator> aref;
-
-    private Xterm console;
-    private TerminalOptions consoleOptions = new TerminalOptions()
-        {
-            CursorStyle = CursorStyle.Bar,
-        };
-    private string[] _addonIds = { "xterm-addon-fit", };
-
-    private List<AInput> inputs = new List<AInput>();
-    private AInput A
-    {
-        set => this.inputs.Add(value);
-    }
-    private List<OutputB> outputs = new List<OutputB>();
-    private OutputB B
-    {
-        set => this.outputs.Add(value);
-    }
-    private List<AudioOutput> audioOutputs = new List<AudioOutput>();
-    private AudioOutput BAudio
-    {
-        set => this.audioOutputs.Add(value);
-    }
-
-    private async Task<string> EditorText()
-    {
-        return Convert.ToString(await js.InvokeAsync<object>("aceEditor.session.getValue"));
-    }
-
-    private async Task RunCode()
-    {
-        if (!this.running)
-        {
-            this.vm = new VM();
-            this.vm.vm = VMInterface.CreateVM();
-            this.fileName = Path.Combine(Path.GetTempPath(), DateTime.Now.ToString("yyyyMMddHHmmssffff.c"));
-            this.fileText = await this.EditorText();
-            File.WriteAllText(this.fileName, this.fileText);
-            VMInterface.SetFilename(this.vm.vm, this.fileName);
-
-            using (new DialogCloser())
-            {
-                if (await this.DoCompile())
-                {
-                    VMInterface.SetIPP(this.vm.vm, this.ipp);
-                    this.formatDisabled = true;
-                    await this.js.InvokeVoidAsync("aceEditor.setReadOnly", true);
-                    await this.Run();
-                    this.runBtn = "Stop";
-                    this.ResetStopWatch();
-                    this.StartStopWatch(false);
-                    if (this.TestVectorEnabled)
-                        await RunInputVectors();
-                }
-            }
-        }
-        else
-        {
-            this.userStoppedExec = true;
-            await this.Stop();
-            File.Delete(this.fileName);
-        }
-        this.running = !this.running;
-    }
-
-    private async Task Continue()
-    {
-        if (VMInterface.IsBroken(this.vm.vm) == 1)
-        {
-            await this.js.InvokeVoidAsync("removeAllMarkers");
-            VMInterface.Step(this.vm.vm);
-            VMInterface.SetUnBroken(this.vm.vm);
-            this.StartStopWatch(true);
-        }
-    }
-
-    private async Task Step()
-    {
-        VMInterface.AtBreakpoint(this.vm.vm);
-        VMInterface.Step(this.vm.vm);
-        await this.js.InvokeVoidAsync("removeAllMarkers");
-        this.Update(null);
-    }
-
-    private void AClick(AInput A)
-    {
-        Pins pin = A.ID switch
-        {
-            "A0" => Pins.A0,
-            "A1" => Pins.A1,
-            "A2" => Pins.A2,
-            "A3" => Pins.A3,
-            "A4" => Pins.A4,
-            "A5" => Pins.A5,
-            "A6" => Pins.A6,
-            "A7" => Pins.A7
-        };
-        if (A.Tag == "Off")
-        {
-            A.Tag = "On";
-            VMInterface.SetPin(vm.vm, pin, 1);
-            this.timings[A.ID].x.Add(this.timeSpan.TotalMilliseconds);
-            this.timings[A.ID].y.Add(true);
-        }
-        else
-        {
-            A.Tag = "Off";
-            VMInterface.SetPin(vm.vm, pin, 0);
-            this.timings[A.ID].x.Add(this.timeSpan.TotalMilliseconds);
-            this.timings[A.ID].y.Add(false);
-        }
-
-        this.UpdateAValue();
-    }
-
-    private void Hold(AInput A)
-    {
-        Pins pin = A.ID switch
-        {
-            "A0" => Pins.A0,
-            "A1" => Pins.A1,
-            "A2" => Pins.A2,
-            "A3" => Pins.A3,
-            "A4" => Pins.A4,
-            "A5" => Pins.A5,
-            "A6" => Pins.A6,
-            "A7" => Pins.A7
-        };
-        if (A.Tag == "Off")
-        {
-            A.Tag = "On";
-            VMInterface.SetPin(vm.vm, pin, 1);
-            this.timings[A.ID].x.Add(this.timeSpan.TotalMilliseconds);
-            this.timings[A.ID].y.Add(true);
-        }
-
-        this.UpdateAValue();
-    }
-
-    private void Release(AInput A)
-    {
-        Pins pin = A.ID switch
-        {
-            "A0" => Pins.A0,
-            "A1" => Pins.A1,
-            "A2" => Pins.A2,
-            "A3" => Pins.A3,
-            "A4" => Pins.A4,
-            "A5" => Pins.A5,
-            "A6" => Pins.A6,
-            "A7" => Pins.A7
-        };
-        if (A.Tag == "On")
-        {
-            A.Tag = "Off";
-            VMInterface.SetPin(vm.vm, pin, 0);
-            this.timings[A.ID].x.Add(this.timeSpan.TotalMilliseconds);
-            this.timings[A.ID].y.Add(false);
-        }
-
-        this.UpdateAValue();
-    }
-
-    private async Task FormatCode()
-    {
-        this.fileName = Path.Combine(Path.GetTempPath(), DateTime.Now.ToString("yyyyMMddHHmmssffff.c"));
-        this.fileText = await this.EditorText();
-        File.WriteAllText(this.fileName, this.fileText);
-        /*
-        * string code = await this.EditorText();
-        * _ = await this.js.InvokeAsync<string>("aceEditor.session.setValue", new AStyleInterface().FormatSource(code, string.Empty));
-        */
-        ProcessStartInfo startInfo = new ProcessStartInfo()
-            {
-                CreateNoWindow = false,
-                FileName = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "GC.exe"),
-                WindowStyle = ProcessWindowStyle.Hidden,
-                Arguments = string.Format("-file-\"{0}\" -tab-size-4 -no-tab_out- -space_if- -space_return- -stmt_break_alone- -stmt_concat_if_and_else- -stmt_concat_else_2_stmt- -no-stmt_concat_inline_class- -no-stmt_concat_switch- -stmt_brace_style_fct-2 -stmt_brace_style-2 -stmt_brace_style_class-2 -stmt_switch_style-4 -stmt_switch_eol-1 -stmt_class_indent-1 -stmt_namespace_indent- -stmt_extern_c_indent- -no-cmt_add_gc_tag- -no-cmt_add_file- -no-cmt_add_fct_def- -code_align_max_blanks-1 -pp_style-1 -pp_align_to_code", this.fileName)
-            };
-
-        using (Process process = Process.Start(startInfo))
-        {
-            await process.WaitForExitAsync();
-        }
-        await this.js.InvokeAsync<string>("aceEditor.session.setValue", await File.ReadAllTextAsync(this.fileName));
-        File.Delete(this.fileName);
-    }
-
-    private async Task ToggleTestVector(ChangeEventArgs e)
-    {
-        bool enabled = Convert.ToBoolean(e.Value);
-        this.TestVectorEnabled = enabled;
-        if (enabled)
-        {
-            await this.InvokeAsync(this.StateHasChanged);
-            await this.js.InvokeVoidAsync("initTestVectorEditor");
-            System.Diagnostics.Debug.WriteLine(this.testVectorText);
-        }
-    }
-
-    private async Task ClearTerminal()
-    {
-        await this.js.InvokeVoidAsync("clrscrn");
-    }
-
-    private async Task OnFirstRender()
-    {
-        await console.InvokeAddonFunctionVoidAsync("xterm-addon-fit", "fit");
-    }
-
-    protected override Task OnInitializedAsync()
-    {
-        this.symbols = new ConcurrentDictionary<string, (string address, string value)>();
-        return base.OnInitializedAsync();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await js.InvokeVoidAsync("msimLoad");
-            this.vm = new VM();
-            this.vm.vm = VMInterface.CreateVM();
-            this.vm_terminate = new VM();
-            this.aref = DotNetObjectReference.Create(this);
-            await js.InvokeAsync<string>("SetDotNetHelper", this.aref);
-            VMInterface.SetIPP(this.vm.vm, this.ipp);
-
-            this.timings = new ConcurrentDictionary<string, (List<object> x, List<object> y)>();
-            for (int i = 0; i < pinStr.Count; i++)
-            {
-                this.timings.TryAdd(pinStr[i], (new List<object>() { 0 }, new List<object>() { 0 }));
-                this.chartData.Add(new Scatter()
-                    {
-                        Name = pinStr[i],
-                        Mode = ModeFlag.Lines,
-                        X = new List<object>() { 0 },
-                        Y = new List<object>() { 0 },
-                        Fill = FillEnum.None
-                    });
-            }
-
-            ExtendLegendForTimingSeries(this.chartData.Cast<Scatter>().ToArray(), this.layout, this.settings);
-            await this.chart.Relayout();
-        }
-    }
 }

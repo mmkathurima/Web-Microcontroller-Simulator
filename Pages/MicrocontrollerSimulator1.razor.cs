@@ -125,9 +125,7 @@ public partial class MicrocontrollerSimulator
             };
 
             if (serie.Fill == FillEnum.ToSelf)
-            {
                 scatter.Fill = FillEnum.ToSelf;
-            }
 
             traces.Add(scatter);
             yPosition += settings.YDelta + settings.YSpacing;
@@ -241,9 +239,7 @@ public partial class MicrocontrollerSimulator
         {
             int num = Convert.ToInt32(line);
             for (int i = 0; i <= 7; i++)
-            {
                 list.Add(Convert.ToByte((i == 0 ? num : (num >> i)) & 1u));
-            }
             return list;
         }
         catch (Exception)
@@ -269,9 +265,7 @@ public partial class MicrocontrollerSimulator
         {
             this.testVectorReadOnly = true;
             if (this.Ips == 5)
-            {
                 this.Ips = 3;
-            }
             this.ipsDisabled = true;
             lineno = 1;
             await this.js.InvokeVoidAsync("addTestVectorMarker", lineno - 1);
@@ -319,9 +313,7 @@ public partial class MicrocontrollerSimulator
                             {
                                 int num2 = Convert.ToInt32(num * 1000.0 * 1.0 / (ipp * 20 / INSTR_PER_SEC));
                                 if (num2 >= 1)
-                                {
                                     await Task.Delay(num2);
-                                }
                             }
                             else
                             {
@@ -333,9 +325,7 @@ public partial class MicrocontrollerSimulator
                         {
                             int num3 = Convert.ToInt32(num * (1f / (ipp * 20 / INSTR_PER_SEC)));
                             if (num3 >= 1)
-                            {
                                 await Task.Delay(num3);
-                            }
                         }
                     }
                     else
@@ -352,9 +342,7 @@ public partial class MicrocontrollerSimulator
                             {
                                 List<byte> pinValuesFromFileLine = await this.GetPinValuesFromFileLine(array2[1], lineno);
                                 if (pinValuesFromFileLine == null)
-                                {
                                     this.runFromInputVectorsThreadIsRunning = false;
-                                }
                                 else
                                 {
                                     if (VMInterface.GetPin(vm.vm, Pins.B0) != pinValuesFromFileLine[0])
@@ -395,9 +383,7 @@ public partial class MicrocontrollerSimulator
                                     else
                                     {
                                         if (VMInterface.GetPin(vm.vm, Pins.B7) == pinValuesFromFileLine[7])
-                                        {
                                             continue;
-                                        }
                                         await this.js.InvokeVoidAsync("window.alert", "Assert failed:" + lineno + ": B7 not equal " + pinValuesFromFileLine[7]);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
@@ -422,8 +408,11 @@ public partial class MicrocontrollerSimulator
                         for (int i = 0; i < 8; i++)
                         {
                             bool val = Convert.ToBoolean(values[i]);
-                            AInput inputA = this.inputs.First(y => y.ID == string.Format("A{0}", i));
-                            inputA.Value = val;
+                            for (int j = 0; j < this.inputs.Count; j++)
+                            {
+                                if (this.inputs[j].ID == string.Format("A{0}", i))
+                                    this.inputs[j].Value = val;
+                            }
                             VMInterface.SetPin(this.vm.vm, this.APins[i], values[i]);
                             this.UpdateAValue();
 
@@ -438,14 +427,12 @@ public partial class MicrocontrollerSimulator
         catch (Exception ex2)
         {
             if (!ex2.Message.ToUpper().Contains("ABORT"))
-            {
                 await this.js.InvokeVoidAsync("window.alert", "Caught exception running test vector\n" + ex2.Message + "\n" + ex2.StackTrace);
-            }
         }
         this.testVectorReadOnly = false;
         this.runFromInputVectorsThreadIsRunning = false;
         await this.js.InvokeVoidAsync("removeAllTestVectorMarkers");
-        this.ipsDisabled = false;
+        this.pushButtonDisabled = this.ipsDisabled = false;
 
         for (int i = 0; i < 8; i++)
             this.inputs.First(y => y.ID == string.Format("A{0}", i)).Disabled = false;
