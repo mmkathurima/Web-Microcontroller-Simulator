@@ -14,14 +14,13 @@ using System.Threading.Tasks;
 using Plotly.Blazor.Traces;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces.ScatterLib;
-using Newtonsoft.Json;
 using Microsoft.VisualBasic;
 
 namespace mcsim.Pages;
 
 public partial class MicrocontrollerSimulator
 {
-    private List<uint> breakpoints;
+    private IEnumerable<uint> breakpoints;
     private nint breakpoint_step;
     private uint timer_id;
     private StringBuilder sb = new StringBuilder(1_000);
@@ -147,9 +146,9 @@ public partial class MicrocontrollerSimulator
         return flag;
     }
 
-    public async Task Run()
+    private async Task Run()
     {
-        this.breakpoints = (await js.InvokeAsync<List<object>>("aceEditor.session.getBreakpoints")).Select((x, i) => x is not null ? i : -1).Where(x => x != -1).Select(x => Convert.ToUInt32(x + 1)).ToList();
+        this.breakpoints = (await js.InvokeAsync<List<object>>("aceEditor.session.getBreakpoints")).Select((x, i) => x is not null ? i : -1).Where(x => x != -1).Select(x => Convert.ToUInt32(x + 1));
 
         foreach (uint u in this.breakpoints)
             VMInterface.AddBreakpoint(this.vm.vm, u);
@@ -183,7 +182,7 @@ public partial class MicrocontrollerSimulator
         this.timer_id = TimerInterface.timeSetEvent(50u, 0u, clock, vm.vm, 1u);
     }
 
-    public async Task Stop()
+    private async Task Stop()
     {
         this.stepEnabled = false;
         this.continueEnabled = false;
@@ -211,25 +210,21 @@ public partial class MicrocontrollerSimulator
         await this.js.InvokeVoidAsync("aceEditor.setReadOnly", false);
 
         IList<ITrace> preserve = new List<ITrace>();
-        for (int i = 0; i < pinStr.Count; i++)
+        for (int i = 0; i < pinStr.Count(); i++)
         {
             preserve.Add(new Scatter()
             {
-                Name = pinStr[i],
+                Name = pinStr.ElementAt(i),
                 Mode = ModeFlag.Lines,
-                X = this.timings[this.pinStr[i]].x.Prepend(0).ToArray(),
-                Y = this.timings[this.pinStr[i]].y.Prepend(0).ToArray(),
+                X = this.timings[this.pinStr.ElementAt(i)].x.Prepend(0).ToList(),
+                Y = this.timings[this.pinStr.ElementAt(i)].y.Prepend(0).ToList(),
                 Fill = FillEnum.None
             });
         }
         preserve = GetTracesFromTimingSeries(preserve, this.settings);
         await this.InvokeAsync(async () => await this.chart.Clear());
         if (this.fromVectors)
-        {
-            //ExtendLegendForTimingSeries(preserve.Cast<Scatter>().ToArray(), this.layout, this.settings);
-            //await this.chart.Relayout();
             this.fromVectors = false;
-        }
 
         foreach (ITrace x in preserve)
             await this.InvokeAsync(async () => await this.chart.AddTrace(x));
@@ -313,11 +308,7 @@ public partial class MicrocontrollerSimulator
         }
     }
 
-    private bool SoundOn
-    {
-        get => this.soundOn;
-        set => this.soundOn = value;
-    }
+    private bool SoundOn { get; set; } = false;
 
     private bool TestVectorEnabled
     {
@@ -335,9 +326,9 @@ public partial class MicrocontrollerSimulator
         }
     }
 
-    public bool DialVisible
+    private bool DialVisible
     {
-        get => this.dialVisible; 
+        get => this.dialVisible;
         set
         {
             for (int i = 0; i < this.inputs.Count; i++)
@@ -348,7 +339,7 @@ public partial class MicrocontrollerSimulator
         }
     }
 
-    public bool SSDVisible { get; set; }
+    private bool SSDVisible { get; set; }
 
     private async void Update(object? state)
     {
@@ -396,18 +387,18 @@ public partial class MicrocontrollerSimulator
     private async void UpdateBValue()
     {
         byte pin = VMInterface.GetPin(vm.vm, Pins.B);
-        int[] range = Enumerable.Range(0, 8).Select(i => 1 << i).ToArray();
+        IEnumerable<int> range = Enumerable.Range(0, 8).Select(i => 1 << i);
 
         if (this.SoundOn)
         {
             for (int i = 0; i < this.audioOutputs.Count; i++)
             {
-                if ((pin & range[i]) != 0 && this.audioOutputs[i].Tag != "On")
+                if ((pin & range.ElementAt(i)) != 0 && this.audioOutputs[i].Tag != "On")
                 {
                     this.audioOutputs[i].Tag = "On";
                     await this.audioOutputs[i].ToggleSound(i);
                 }
-                else if ((pin & range[i]) == 0 && this.audioOutputs[i].Tag != "Off")
+                else if ((pin & range.ElementAt(i)) == 0 && this.audioOutputs[i].Tag != "Off")
                 {
                     this.audioOutputs[i].Tag = "Off";
                     await this.audioOutputs[i].ToggleSound(i);
@@ -430,12 +421,12 @@ public partial class MicrocontrollerSimulator
             }
             for (int i = 0; i < this.outputs.Count; i++)
             {
-                if ((pin & range[i]) != 0 && this.outputs[i].Tag != "On")
+                if ((pin & range.ElementAt(i)) != 0 && this.outputs[i].Tag != "On")
                 {
                     this.outputs[i].Tag = "On";
                     await this.outputs[i].ToggleLed();
                 }
-                else if ((pin & range[i]) == 0 && this.outputs[i].Tag != "Off")
+                else if ((pin & range.ElementAt(i)) == 0 && this.outputs[i].Tag != "Off")
                 {
                     this.outputs[i].Tag = "Off";
                     await this.outputs[i].ToggleLed();

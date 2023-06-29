@@ -23,7 +23,7 @@ public partial class MicrocontrollerSimulator
         BValHex = "= x00", BValDec = "B = 0", testVectorText;
     private string fileName, fileText;
     private bool running = false, continueEnabled = false, stepEnabled = false,
-        formatDisabled = false, soundOn = false, testVectorEnabled = false, testVectorReadOnly = false,
+        formatDisabled = false, testVectorEnabled = false, testVectorReadOnly = false,
         ipsDisabled = false, exportDiagram = false, pushButton = false, pushButtonDisabled = false,
         nestedInterruptsEnabled;
     private VM vm, vm_terminate;
@@ -289,12 +289,12 @@ public partial class MicrocontrollerSimulator
             VMInterface.SetIPP(this.vm.vm, this.ipp);
 
             this.timings = new ConcurrentDictionary<string, (List<object> x, List<object> y)>();
-            for (int i = 0; i < pinStr.Count; i++)
+            for (int i = 0; i < pinStr.Count(); i++)
             {
-                this.timings.TryAdd(pinStr[i], (new List<object>() { 0 }, new List<object>() { 0 }));
+                this.timings.TryAdd(pinStr.ElementAt(i), (new List<object>() { 0 }, new List<object>() { 0 }));
                 this.chartData.Add(new Scatter()
                 {
-                    Name = pinStr[i],
+                    Name = pinStr.ElementAt(i),
                     Mode = ModeFlag.Lines,
                     X = new List<object>() { 0 },
                     Y = new List<object>() { 0 },
@@ -302,7 +302,7 @@ public partial class MicrocontrollerSimulator
                 });
             }
 
-            ExtendLegendForTimingSeries(this.chartData.Cast<Scatter>().ToArray(), this.layout, this.settings);
+            ExtendLegendForTimingSeries(this.chartData, this.layout, this.settings);
             await this.chart.Relayout();
         }
     }

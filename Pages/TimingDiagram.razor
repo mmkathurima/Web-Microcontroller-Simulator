@@ -25,9 +25,8 @@
 
 @code {
     private PlotlyChart chart;
-    private List<string> pinStr = Enumerable.Range(0, 16)
-        .Select(x => x < 8 ? string.Format("A{0}", x) : string.Format("B{0}", x - 8))
-        .ToList();
+    private IEnumerable<string> pinStr = Enumerable.Range(0, 16)
+        .Select(x => x < 8 ? string.Format("A{0}", x) : string.Format("B{0}", x - 8));
     private IList<ITrace> chartData = new List<ITrace>();
     private IBrowserFile file;
     private Config config = new Config()
@@ -82,19 +81,19 @@
                 using StreamReader reader = new StreamReader(stream);
                 Dictionary<string, (List<object> x, List<object> y)> timings = JsonConvert.DeserializeObject<Dictionary<string, (List<object> x, List<object> y)>>(await reader.ReadToEndAsync());
                 await this.InvokeAsync(async () => await this.chart.Clear());
-                for (int i = 0; i < pinStr.Count; i++)
+                for (int i = 0; i < pinStr.Count(); i++)
                 {
                     this.chartData.Add(new Scatter()
                         {
-                            Name = pinStr[i],
+                            Name = pinStr.ElementAt(i),
                             Mode = ModeFlag.Lines,
-                            X = timings[this.pinStr[i]].x.Prepend(0).ToArray(),
-                            Y = timings[this.pinStr[i]].y.Prepend(0).ToArray(),
+                            X = timings[this.pinStr.ElementAt(i)].x.Prepend(0).ToList(),
+                            Y = timings[this.pinStr.ElementAt(i)].y.Prepend(0).ToList(),
                             Fill = FillEnum.None
                         });
                 }
                 this.chartData = MicrocontrollerSimulator.GetTracesFromTimingSeries(this.chartData, this.settings);
-                MicrocontrollerSimulator.ExtendLegendForTimingSeries(this.chartData.Cast<Scatter>().ToArray(), this.layout, this.settings);
+                MicrocontrollerSimulator.ExtendLegendForTimingSeries(this.chartData, this.layout, this.settings);
                 await this.chart.Relayout();
                 foreach (ITrace x in this.chartData)
                     await this.InvokeAsync(async () => await this.chart.AddTrace(x));

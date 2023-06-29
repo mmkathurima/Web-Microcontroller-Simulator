@@ -23,9 +23,8 @@ public partial class MicrocontrollerSimulator
 {
     private ConcurrentDictionary<string, (List<object> x, List<object> y)> timings;
     private bool fromVectors = false;
-    private List<string> pinStr = Enumerable.Range(0, 16)
-        .Select(x => x < 8 ? string.Format("A{0}", x) : string.Format("B{0}", x - 8))
-        .ToList();
+    private IEnumerable<string> pinStr = Enumerable.Range(0, 16)
+        .Select(x => x < 8 ? string.Format("A{0}", x) : string.Format("B{0}", x - 8));
     private IList<ITrace> chartData = new List<ITrace>();
 
     private PlotlyChart chart;
@@ -131,13 +130,14 @@ public partial class MicrocontrollerSimulator
             yPosition += settings.YDelta + settings.YSpacing;
         }
 
-        return traces.ToArray();
+        return new List<ITrace>(traces);
     }
 
-    public static Layout ExtendLegendForTimingSeries(Scatter[] series, Layout layout, dynamic settings)
+    public static Layout ExtendLegendForTimingSeries(IList<ITrace> series, Layout layout, dynamic settings)
     {
         int yPosition = 0;
-        foreach (Scatter serie in series)
+        IEnumerable<Scatter> s = series.Cast<Scatter>();
+        foreach (Scatter serie in s)
         {
             layout.YAxis[0].TickVals.Add(yPosition);
             layout.YAxis[0].TickText.Add(serie.Name);
@@ -145,16 +145,16 @@ public partial class MicrocontrollerSimulator
         }
         layout.Shapes ??= new List<Shape>();
 
-        int maxY = (series.Length - 1) * (settings.YDelta + settings.YSpacing) + settings.YDelta;
+        int maxY = (s.Count() - 1) * (settings.YDelta + settings.YSpacing) + settings.YDelta;
 
         if (settings.ShowStartLine)
         {
             layout.Shapes.Add(new Shape()
             {
                 Type = TypeEnum.Line,
-                X0 = series[0].X[0],
+                X0 = s.ElementAt(0).X[0],
                 Y0 = 0,
-                X1 = series[0].X[0],
+                X1 = s.ElementAt(0).X[0],
                 Y1 = maxY
             });
         }
@@ -164,9 +164,9 @@ public partial class MicrocontrollerSimulator
             layout.Shapes.Add(new Shape()
             {
                 Type = TypeEnum.Line,
-                X0 = series[0].X[series[0].X.Count - 1],
+                X0 = s.ElementAt(0).X[s.ElementAt(0).X.Count - 1],
                 Y0 = 0,
-                X1 = series[0].X[series[0].X.Count - 1],
+                X1 = s.ElementAt(0).X[s.ElementAt(0).X.Count - 1],
                 Y1 = maxY
             });
         }
@@ -258,7 +258,7 @@ public partial class MicrocontrollerSimulator
         }
 
         this.testVectorText = Convert.ToString(await this.js.InvokeAsync<object>("testVectorEditor.session.getValue"));
-        List<string> input = testVectorText.Split('\n').ToList();
+        IEnumerable<string> input = testVectorText.Split('\n');
         this.PushButton = false;
         int lineno;
         try
@@ -276,7 +276,7 @@ public partial class MicrocontrollerSimulator
                 inputA.Value = false;
             }
             await this.InvokeAsync(this.StateHasChanged);
-            using List<string>.Enumerator enumerator = input.GetEnumerator();
+            using IEnumerator<string> enumerator = input.GetEnumerator();
             for (; enumerator.MoveNext(); lineno++)
             {
                 string current = enumerator.Current;
@@ -404,7 +404,7 @@ public partial class MicrocontrollerSimulator
                             this.runFromInputVectorsThreadIsRunning = false;
                             break;
                         }
-                        string[] a = this.pinStr.Take(8).ToArray();
+                        IEnumerable<string> a = this.pinStr.Take(8);
                         for (int i = 0; i < 8; i++)
                         {
                             bool val = Convert.ToBoolean(values[i]);
@@ -416,13 +416,13 @@ public partial class MicrocontrollerSimulator
                             VMInterface.SetPin(this.vm.vm, this.APins[i], values[i]);
                             this.UpdateAValue();
 
-                            this.timings[a[i]].x.Add(this.timeSpan.TotalMilliseconds);
-                            this.timings[a[i]].y.Add(val);
+                            this.timings[a.ElementAt(i)].x.Add(this.timeSpan.TotalMilliseconds);
+                            this.timings[a.ElementAt(i)].y.Add(val);
                         }
                     }
                 }
             }
-            File.WriteAllLines("timings.csv", this.timings.Select(k => string.Format("{0},{1},,{2}", k.Key, string.Join(',', k.Value.x), string.Join(',', k.Value.y))));
+            //File.WriteAllLines("timings.csv", this.timings.Select(k => string.Format("{0},{1},,{2}", k.Key, string.Join(',', k.Value.x), string.Join(',', k.Value.y))));
         }
         catch (Exception ex2)
         {
