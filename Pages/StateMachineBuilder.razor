@@ -1,5 +1,6 @@
 ﻿@page "/builder"
 @inject IJSRuntime js
+@inject ISnackbar Snackbar
 
 <PageTitle>State Machine Builder</PageTitle>
 <h3>State Machine Builder</h3>
@@ -107,22 +108,22 @@
         string initState = await this.js.InvokeAsync<string>("getInitState");
         if (!states.Any())
         {
-            await this.js.InvokeVoidAsync("window.alert", "At least one state is required.");
+            this.Snackbar.Add("At least one state is required.", Severity.Error);
             return;
         }
         else if (string.IsNullOrWhiteSpace(initState))
         {
-            await this.js.InvokeVoidAsync("window.alert", "Initial state must be selected.");
+            this.Snackbar.Add("Initial state must be selected.", Severity.Error);
             return;
         }
         if (!transitions.Any())
         {
-            await this.js.InvokeVoidAsync("window.alert", "At least one transition is required.");
+            this.Snackbar.Add("At least one transition is required.", Severity.Error);
             return;
         }
         else if (!transitions.Any(x => !string.IsNullOrWhiteSpace(x.Condition)))
         {
-            await this.js.InvokeVoidAsync("window.alert", "Empty condition in transition from state.");
+            this.Snackbar.Add("Empty condition in transition from state.", Severity.Error);
             return;
         }
         string output = new Generator(new Graph(this.smAbbrev, states, this.smName, Convert.ToString(this.smPeriod), transitions, transitions[0], editorText, initState)).GenerateCCode(this.smType == "Synchronous", this.UARTEnabled);

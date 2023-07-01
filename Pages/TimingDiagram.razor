@@ -1,5 +1,6 @@
 ﻿@page "/timing"
 @inject IJSRuntime js
+@inject ISnackbar Snackbar
 
 <PageTitle>Timing Diagram Generator</PageTitle>
 
@@ -12,7 +13,7 @@
         </MudButton>
     </ButtonTemplate>
 </MudFileUpload>
-@if (file != null)
+@if (file is not null)
 {
     <MudList>
         <MudListItem Icon="@Icons.Material.Filled.AttachFile">
@@ -34,7 +35,7 @@
             Responsive = true,
             ScrollZoom = ScrollZoomFlag.True
         };
-    private Layout layout =  new Layout()
+    private Layout layout = new Layout()
         {
             Title = new Plotly.Blazor.LayoutLib.Title()
             {
@@ -101,7 +102,7 @@
         }
         catch (JsonSerializationException)
         {
-            await this.js.InvokeVoidAsync("window.alert", "Error: Check whether your uploaded JSON consists of valid timing diagram data.");
+            this.Snackbar.Add("Error: Check whether your uploaded JSON consists of valid timing diagram data.", Severity.Error);
         }
     }
 }

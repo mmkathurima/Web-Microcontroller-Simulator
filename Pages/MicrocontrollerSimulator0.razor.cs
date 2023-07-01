@@ -15,6 +15,7 @@ using Plotly.Blazor.Traces;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces.ScatterLib;
 using Microsoft.VisualBasic;
+using MudBlazor;
 
 namespace mcsim.Pages;
 
@@ -224,7 +225,11 @@ public partial class MicrocontrollerSimulator
         preserve = GetTracesFromTimingSeries(preserve, this.settings);
         await this.InvokeAsync(async () => await this.chart.Clear());
         if (this.fromVectors)
+        {
+            //ExtendLegendForTimingSeries(preserve.Cast<Scatter>().ToArray(), this.layout, this.settings);
+            //await this.chart.Relayout();
             this.fromVectors = false;
+        }
 
         foreach (ITrace x in preserve)
             await this.InvokeAsync(async () => await this.chart.AddTrace(x));
@@ -303,6 +308,8 @@ public partial class MicrocontrollerSimulator
         get => this.pushButton;
         set
         {
+            if (this.inputs.Count > 8)
+                this.inputs.Clear();
             this.InvokeAsync(this.StateHasChanged);
             this.pushButton = value;
         }
@@ -367,7 +374,7 @@ public partial class MicrocontrollerSimulator
             this.running = false;
             await this.Stop();
             if (!this.running)
-                await this.js.InvokeVoidAsync("window.alert", "Execution has ended.");
+                this.Snackbar.Add("Execution has ended.", Severity.Info);
         }
         else
             this.stepEnabled = false;

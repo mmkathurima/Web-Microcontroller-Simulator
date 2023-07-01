@@ -215,7 +215,7 @@ public partial class MicrocontrollerSimulator
             CreateNoWindow = false,
             FileName = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "GC.exe"),
             WindowStyle = ProcessWindowStyle.Hidden,
-            Arguments = string.Format("-file-\"{0}\" -tab-size-4 -no-tab_out- -space_if- -space_return- -stmt_break_alone- -stmt_concat_if_and_else- -stmt_concat_else_2_stmt- -no-stmt_concat_inline_class- -no-stmt_concat_switch- -stmt_brace_style_fct-2 -stmt_brace_style-2 -stmt_brace_style_class-2 -stmt_switch_style-4 -stmt_switch_eol-1 -stmt_class_indent-1 -stmt_namespace_indent- -stmt_extern_c_indent- -no-cmt_add_gc_tag- -no-cmt_add_file- -no-cmt_add_fct_def- -code_align_max_blanks-1 -pp_style-1 -pp_align_to_code", this.fileName)
+            Arguments = string.Format("-file-\"{0}\" -tab-size-4 -no-tab_out- -space_if- -space_return- -stmt_break_alone- -no-stmt_concat_if- -stmt_concat_if_and_else- -stmt_concat_else_2_stmt- -no-stmt_concat_inline_class- -no-stmt_concat_switch- -stmt_brace_style_fct-2 -stmt_brace_style-2 -stmt_brace_style_class-2 -stmt_switch_style-4 -stmt_switch_eol-1 -stmt_class_indent-1 -stmt_namespace_indent- -stmt_extern_c_indent- -no-cmt_add_gc_tag- -no-cmt_add_file- -no-cmt_add_fct_def- -code_align_max_blanks-1 -pp_style-1 -pp_align_to_code", this.fileName)
         };
 
         using (Process process = Process.Start(startInfo))

@@ -258,5 +258,6 @@ function dragElement(elmnt) {
 function drawSSD(val) {
     let l = val.toString(2).padStart(8, '0').split('').map(x => Number.parseInt(x)).reverse();
     //console.log(l);
-    dpl6.tbl[0].draw_segm(l[0], l[2], l[5], l[6], l[4], l[1], l[3], 0);
+    if (dpl6)
+        dpl6.tbl[0].draw_segm(l[0], l[2], l[5], l[6], l[4], l[1], l[3], 0);
 }

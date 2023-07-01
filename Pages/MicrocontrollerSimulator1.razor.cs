@@ -2,6 +2,7 @@
 using mcsim.Data.MicrocontrollerSimulator.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
+using MudBlazor;
 using Newtonsoft.Json;
 using Plotly.Blazor;
 using Plotly.Blazor.ConfigLib;
@@ -130,7 +131,7 @@ public partial class MicrocontrollerSimulator
             yPosition += settings.YDelta + settings.YSpacing;
         }
 
-        return new List<ITrace>(traces);
+        return traces.Cast<ITrace>().ToArray();
     }
 
     public static Layout ExtendLegendForTimingSeries(IList<ITrace> series, Layout layout, dynamic settings)
@@ -195,7 +196,7 @@ public partial class MicrocontrollerSimulator
         {
             if (line.Length < 9)
             {
-                await this.js.InvokeVoidAsync("window.alert", "Error:" + lineno + ": must have values for all 8 inputs");
+                this.Snackbar.Add("Error:" + lineno + ": must have values for all 8 inputs", Severity.Error);
                 return null;
             }
             foreach (char item in line[1..].Reverse())
@@ -205,7 +206,7 @@ public partial class MicrocontrollerSimulator
                     list.Add(Convert.ToByte(char.GetNumericValue(item)));
                     continue;
                 }
-                await this.js.InvokeVoidAsync("window.alert", "Error:" + lineno + ": input values must be either 0 or 1");
+                this.Snackbar.Add("Error:" + lineno + ": input values must be either 0 or 1", Severity.Error);
                 return null;
             }
             return list;
@@ -214,7 +215,7 @@ public partial class MicrocontrollerSimulator
         {
             if (line.Length < 4)
             {
-                await this.js.InvokeVoidAsync("window.alert", "Error:" + lineno + ": must have values for all 8 inputs");
+                this.Snackbar.Add("Error:" + lineno + ": must have values for all 8 inputs", Severity.Error);
                 return null;
             }
             foreach (char item2 in line[2..].Reverse())
@@ -223,13 +224,11 @@ public partial class MicrocontrollerSimulator
                 {
                     byte b = Convert.ToByte(item2.ToString(), 16);
                     for (int i = 0; i <= 3; i++)
-                    {
                         list.Add(Convert.ToByte((i == 0 ? b : (b >> i)) & 1u));
-                    }
                 }
                 catch (Exception)
                 {
-                    await this.js.InvokeVoidAsync("window.alert", "Error:" + lineno + ": hex value invalid");
+                    this.Snackbar.Add("Error:" + lineno + ": hex value invalid", Severity.Error);
                     return null;
                 }
             }
@@ -244,7 +243,7 @@ public partial class MicrocontrollerSimulator
         }
         catch (Exception)
         {
-            await this.js.InvokeVoidAsync("window.alert", "Error:" + lineno + ": decimal value invalid");
+            this.Snackbar.Add("Error:" + lineno + ": decimal value invalid", Severity.Error);
             return null;
         }
     }
@@ -296,13 +295,13 @@ public partial class MicrocontrollerSimulator
                         string[] array = current.Split();
                         if (array.Length != 3)
                         {
-                            await this.js.InvokeVoidAsync("window.alert", "Error:" + lineno + ": format is 'wait number scale'");
+                            this.Snackbar.Add("Error:" + lineno + ": format is 'wait number scale'", Severity.Error);
                             this.runFromInputVectorsThreadIsRunning = false;
                             break;
                         }
                         if (!double.TryParse(array[1], out double num))
                         {
-                            await this.js.InvokeVoidAsync("window.alert", "Error:" + lineno + ": format is 'wait number scale'");
+                            this.Snackbar.Add("Error:" + lineno + ": format is 'wait number scale'", Severity.Error);
                             this.runFromInputVectorsThreadIsRunning = false;
                             break;
                         }
@@ -317,7 +316,7 @@ public partial class MicrocontrollerSimulator
                             }
                             else
                             {
-                                await this.js.InvokeVoidAsync("window.alert", "Error:" + lineno + ": scale must be either ms or s");
+                                this.Snackbar.Add("Error:" + lineno + ": scale must be either ms or s", Severity.Error);
                                 this.runFromInputVectorsThreadIsRunning = false;
                             }
                         }
@@ -335,7 +334,7 @@ public partial class MicrocontrollerSimulator
                             string[] array2 = current.Split();
                             if (array2.Length != 2)
                             {
-                                await this.js.InvokeVoidAsync("window.alert", "Error:" + lineno + ": format is 'assert ########'");
+                                this.Snackbar.Add("Error:" + lineno + ": format is 'assert ########'", Severity.Error);
                                 this.runFromInputVectorsThreadIsRunning = false;
                             }
                             else
@@ -347,44 +346,44 @@ public partial class MicrocontrollerSimulator
                                 {
                                     if (VMInterface.GetPin(vm.vm, Pins.B0) != pinValuesFromFileLine[0])
                                     {
-                                        await this.js.InvokeVoidAsync("window.alert", "Assert failed:" + lineno + ": B0 not equal " + pinValuesFromFileLine[0]);
+                                        this.Snackbar.Add("Assert failed:" + lineno + ": B0 not equal " + pinValuesFromFileLine[0], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
                                     else if (VMInterface.GetPin(vm.vm, Pins.B1) != pinValuesFromFileLine[1])
                                     {
-                                        await this.js.InvokeVoidAsync("window.alert", "Assert failed:" + lineno + ": B1 not equal " + pinValuesFromFileLine[1]);
+                                        this.Snackbar.Add("Assert failed:" + lineno + ": B1 not equal " + pinValuesFromFileLine[1], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
                                     else if (VMInterface.GetPin(vm.vm, Pins.B2) != pinValuesFromFileLine[2])
                                     {
-                                        await this.js.InvokeVoidAsync("window.alert", "Assert failed:" + lineno + ": B2 not equal " + pinValuesFromFileLine[2]);
+                                        this.Snackbar.Add("Assert failed:" + lineno + ": B2 not equal " + pinValuesFromFileLine[2], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
                                     else if (VMInterface.GetPin(vm.vm, Pins.B3) != pinValuesFromFileLine[3])
                                     {
-                                        await this.js.InvokeVoidAsync("window.alert", "Assert failed:" + lineno + ": B3 not equal " + pinValuesFromFileLine[3]);
+                                        this.Snackbar.Add("Assert failed:" + lineno + ": B3 not equal " + pinValuesFromFileLine[3], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
                                     else if (VMInterface.GetPin(vm.vm, Pins.B4) != pinValuesFromFileLine[4])
                                     {
-                                        await this.js.InvokeVoidAsync("window.alert", "Assert failed:" + lineno + ": B4 not equal " + pinValuesFromFileLine[4]);
+                                        this.Snackbar.Add("Assert failed:" + lineno + ": B4 not equal " + pinValuesFromFileLine[4], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
                                     else if (VMInterface.GetPin(vm.vm, Pins.B5) != pinValuesFromFileLine[5])
                                     {
-                                        await this.js.InvokeVoidAsync("window.alert", "Assert failed:" + lineno + ": B5 not equal " + pinValuesFromFileLine[5]);
+                                        this.Snackbar.Add("Assert failed:" + lineno + ": B5 not equal " + pinValuesFromFileLine[5], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
                                     else if (VMInterface.GetPin(vm.vm, Pins.B6) != pinValuesFromFileLine[6])
                                     {
-                                        await this.js.InvokeVoidAsync("window.alert", "Assert failed:" + lineno + ": B6 not equal " + pinValuesFromFileLine[6]);
+                                        this.Snackbar.Add("Assert failed:" + lineno + ": B6 not equal " + pinValuesFromFileLine[6], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
                                     else
                                     {
                                         if (VMInterface.GetPin(vm.vm, Pins.B7) == pinValuesFromFileLine[7])
                                             continue;
-                                        await this.js.InvokeVoidAsync("window.alert", "Assert failed:" + lineno + ": B7 not equal " + pinValuesFromFileLine[7]);
+                                        this.Snackbar.Add("Assert failed:" + lineno + ": B7 not equal " + pinValuesFromFileLine[7], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
 
@@ -394,7 +393,7 @@ public partial class MicrocontrollerSimulator
                         }
                         if (current.Split().Length != 1)
                         {
-                            await this.js.InvokeVoidAsync("window.alert", "Error:" + lineno + ": unknown command: " + current);
+                            this.Snackbar.Add("Error:" + lineno + ": unknown command: " + current, Severity.Error);
                             this.runFromInputVectorsThreadIsRunning = false;
                             break;
                         }
@@ -427,7 +426,7 @@ public partial class MicrocontrollerSimulator
         catch (Exception ex2)
         {
             if (!ex2.Message.ToUpper().Contains("ABORT"))
-                await this.js.InvokeVoidAsync("window.alert", "Caught exception running test vector\n" + ex2.Message + "\n" + ex2.StackTrace);
+                this.Snackbar.Add("Caught exception running test vector\n" + ex2.Message + "\n" + ex2.StackTrace, Severity.Error);
         }
         this.testVectorReadOnly = false;
         this.runFromInputVectorsThreadIsRunning = false;
