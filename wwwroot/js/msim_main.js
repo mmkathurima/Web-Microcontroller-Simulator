@@ -127,6 +127,18 @@ function editorTheme() {
     else aceEditor.setTheme("ace/theme/sqlserver");
 }
 
+function getCurrentLine() {
+    return aceEditor.getSelectionRange().start.row;
+}
+
+function getCurrentColumn() {
+    return aceEditor.getSelectionRange().start.column;
+}
+
+function scrollToLine(n) {
+    testVectorEditor.scrollToLine(n, true, true, function () { });
+}
+
 function toggleLed(id) {
     document.getElementById(id).classList.toggle('on');
 }

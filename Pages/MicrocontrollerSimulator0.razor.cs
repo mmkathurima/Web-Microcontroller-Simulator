@@ -43,6 +43,8 @@ public partial class MicrocontrollerSimulator
         {
             this.timings[key].x.Clear();
             this.timings[key].y.Clear();
+            this.timings[key].x.Add(0);
+            this.timings[key].y.Add(false);
         }
 
         await this.ClearTerminal();
@@ -149,7 +151,9 @@ public partial class MicrocontrollerSimulator
 
     private async Task Run()
     {
-        this.breakpoints = (await js.InvokeAsync<List<object>>("aceEditor.session.getBreakpoints")).Select((x, i) => x is not null ? i : -1).Where(x => x != -1).Select(x => Convert.ToUInt32(x + 1));
+        this.breakpoints = (await js.InvokeAsync<List<object>>("aceEditor.session.getBreakpoints")).Select((x, i) => x is not null ? i : -1)
+                                                                                                   .Where(x => x != -1)
+                                                                                                   .Select(x => Convert.ToUInt32(x + 1));
 
         foreach (uint u in this.breakpoints)
             VMInterface.AddBreakpoint(this.vm.vm, u);
@@ -191,11 +195,6 @@ public partial class MicrocontrollerSimulator
         this.runBtn = "Run";
         this.BValHex = "= x00";
         this.BValDec = "B = 0";
-        foreach (string i in this.pinStr)
-        {
-            this.timings[i].x.Add(this.timeSpan.TotalMilliseconds);
-            this.timings[i].y.Add(false);
-        }
 
         this.StopStopWatch();
         TimerInterface.timeKillEvent(timer_id);
@@ -210,6 +209,13 @@ public partial class MicrocontrollerSimulator
         await this.js.InvokeVoidAsync("removeAllMarkers");
         await this.js.InvokeVoidAsync("aceEditor.setReadOnly", false);
 
+        foreach (string i in this.pinStr.Take(8))
+        {
+            this.timings[i].x.Add(this.timings.Values.Select(tuple => tuple.x).SelectMany(list => list)
+                                                     .Select(Convert.ToDouble).Max());
+            this.timings[i].y.Add(false);
+        }
+
         IList<ITrace> preserve = new List<ITrace>();
         for (int i = 0; i < pinStr.Count(); i++)
         {
@@ -217,8 +223,8 @@ public partial class MicrocontrollerSimulator
             {
                 Name = pinStr.ElementAt(i),
                 Mode = ModeFlag.Lines,
-                X = this.timings[this.pinStr.ElementAt(i)].x.Prepend(0).ToList(),
-                Y = this.timings[this.pinStr.ElementAt(i)].y.Prepend(0).ToList(),
+                X = this.timings[this.pinStr.ElementAt(i)].x,
+                Y = this.timings[this.pinStr.ElementAt(i)].y,
                 Fill = FillEnum.None
             });
         }
@@ -234,6 +240,7 @@ public partial class MicrocontrollerSimulator
         foreach (ITrace x in preserve)
             await this.InvokeAsync(async () => await this.chart.AddTrace(x));
         this.exportDiagram = true;
+        this.TimingToCsv();
 
         await this.InvokeAsync(this.StateHasChanged);
         VMInterface.SetNestedInterrupts(vm.vm, this.NestedInterruptsEnabled);
@@ -414,8 +421,11 @@ public partial class MicrocontrollerSimulator
 
             foreach ((AudioOutput audio, string s) in this.audioOutputs.Zip(this.pinStr.Skip(8).Take(8)))
             {
-                this.timings[s].x.Add(this.timeSpan.TotalMilliseconds);
-                this.timings[s].y.Add(audio.Tag == "On");
+                if (this.timeSpan.TotalMilliseconds != 0d)
+                {
+                    this.timings[s].x.Add(this.timeSpan.TotalMilliseconds);
+                    this.timings[s].y.Add(audio.Tag == "On");
+                }
             }
             this.outputs.Clear();
         }
@@ -442,8 +452,11 @@ public partial class MicrocontrollerSimulator
 
             foreach ((OutputB @out, string s) in this.outputs.Zip(this.pinStr.Skip(8).Take(8)))
             {
-                this.timings[s].x.Add(this.timeSpan.TotalMilliseconds);
-                this.timings[s].y.Add(@out.Tag == "On");
+                if (this.timeSpan.TotalMilliseconds != 0d)
+                {
+                    this.timings[s].x.Add(this.timeSpan.TotalMilliseconds);
+                    this.timings[s].y.Add(@out.Tag == "On");
+                }
             }
             this.audioOutputs.Clear();
         }

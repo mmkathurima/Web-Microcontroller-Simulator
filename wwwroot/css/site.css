@@ -416,6 +416,95 @@ th {
     left: 6rem;
 }
 
+/* 
+    custom select begin 
+*/
+.wrap {
+    min-width: 7rem;
+    margin: 0 auto;
+}
+
+/* select starting stylings ------------------------------*/
+.select {
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    position: relative;
+    min-width: 7rem;
+}
+
+    .select:after {
+        /* Styling the down arrow */
+        position: absolute;
+        top: 18px;
+        right: 10px;
+        width: 0;
+        height: 0;
+        padding: 0;
+        content: "";
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid var(--mud-palette-text-secondary);
+        pointer-events: none;
+    }
+
+.select-text {
+    position: relative;
+    font-family: inherit;
+    background-color: transparent;
+    min-width: 7rem;
+    padding: 10px 10px 10px 10px;
+    font-size: 18px;
+    border-radius: 4px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+    /* Remove focus */
+    .select-text:focus {
+        outline: none;
+        border-bottom: 2px solid #6df;
+    }
+
+/* Use custom arrow */
+.select .select-text {
+    appearance: none;
+    -webkit-appearance: none;
+    color: currentColor;
+}
+
+/* LABEL ======================================= */
+.select-label {
+    color: rgba(0, 0, 0, 0.26);
+    background: white;
+    font-size: .75rem;
+    font-weight: normal;
+    position: absolute;
+    pointer-events: none;
+    padding: 0 5px;
+    left: 5px;
+    top: 12px;
+    transition: 0.2s ease all;
+}
+
+/* active state */
+.select-text:focus ~ .select-label,
+.select-text:valid ~ .select-label {
+    color: orange;
+    top: -12px;
+    transition: 0.2s ease all;
+    font-size: .75rem;
+}
+
+.select-text:valid:not(focus) ~ .select-label {
+    color: var(--mud-palette-text-primary);
+}
+
+.select-text:valid:focus ~ .select-label {
+    color: #6df;
+}
+
+/* 
+    custom select end
+*/
+
 @supports not ((-webkit-backdrop-filter: none) or (backdrop-filter: none)) {
     .dialog {
         background-color: rgba(255, 255, 255, .8);

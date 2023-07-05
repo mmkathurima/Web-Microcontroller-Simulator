@@ -13,12 +13,12 @@
         <MudTextField T="string" @bind-Value="smAbbrev" id="smAbbrev" Label="Prefix" Placeholder="SM"></MudTextField>
     </MudItem>
     <MudItem>
-        <MudNumericField T="int" @bind-Value="smPeriod" id="smPeriod" Label="Period"></MudNumericField>
+        <MudNumericField T="int" @bind-Value="smPeriod" id="smPeriod" Label="Period" Min="0"></MudNumericField>
     </MudItem>
     <MudItem>
         <MudSelect T="string" @bind-Value="smType" id="smType" Label="Type" AnchorOrigin="Origin.BottomCenter">
-            <MudSelectItem Value="@("Synchronous")">Synchronous</MudSelectItem>
-            <MudSelectItem Value="@("Asynchronous")">Asynchronous</MudSelectItem>
+            <MudSelectItem Value="@("Synchronous")" />
+            <MudSelectItem Value="@("Asynchronous")" />
         </MudSelect>
     </MudItem>
     <MudItem>
@@ -45,9 +45,12 @@
         <MudButton Variant="Variant.Filled" Color="Color.Primary" id="delete_btn">delete</MudButton>
     </MudItem>
     <MudItem>
-        <MudTooltip Text="Intial State" Placement="Placement.Top">
-            <select class="form-select" id="initState" @bind="initStateName"></select>
-        </MudTooltip>
+        <div class="wrap">
+            <div class="select">
+                <select class="select-text" id="initState"></select>
+                <label class="select-label">Initial State</label>
+            </div>
+        </div>
     </MudItem>
     <MudItem>
         <MudTooltip Text="Generated code may consist of errors. Therefore validation of code is required." Placement="Placement.Top">
@@ -86,19 +89,10 @@
     <script type="module" src="smb.js"></script>
 *@
 @code {
-    private string stateName, eventName, smName = "State Machine",
-    smAbbrev = "SM1", initStateName, initEdgeName;
+    private string stateName, eventName, smName = "State Machine", smAbbrev = "SM1";
     private int smPeriod = 1_000;
     private bool UARTEnabled = false;
     private string smType { get; set; } = "Synchronous";
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await js.InvokeVoidAsync("smbLoad");
-        }
-    }
 
     private async Task GenerateC()
     {
@@ -148,5 +142,11 @@
         output = File.ReadAllText(fullFileName);
         File.Delete(fullFileName);
         await js.InvokeVoidAsync("saveFile", fileName, output);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await js.InvokeVoidAsync("smbLoad");
     }
 }

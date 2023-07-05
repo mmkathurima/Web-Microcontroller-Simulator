@@ -14,8 +14,10 @@ using Plotly.Blazor.Traces.ScatterLib;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace mcsim.Pages;
@@ -25,7 +27,7 @@ public partial class MicrocontrollerSimulator
     private ConcurrentDictionary<string, (List<object> x, List<object> y)> timings;
     private bool fromVectors = false;
     private IEnumerable<string> pinStr = Enumerable.Range(0, 16)
-        .Select(x => x < 8 ? string.Format("A{0}", x) : string.Format("B{0}", x - 8));
+                                                   .Select(x => x < 8 ? string.Format("A{0}", x) : string.Format("B{0}", x - 8));
     private IList<ITrace> chartData = new List<ITrace>();
 
     private PlotlyChart chart;
@@ -183,13 +185,12 @@ public partial class MicrocontrollerSimulator
     private async void UploadCode(IBrowserFile file)
     {
         this.file = file;
-        //TODO upload the files to the server
         await using System.IO.Stream stream = this.file.OpenReadStream();
         using StreamReader reader = new StreamReader(stream);
         await this.js.InvokeVoidAsync("aceEditor.session.setValue", await reader.ReadToEndAsync());
     }
 
-    private async Task<List<byte>> GetPinValuesFromFileLine(string line, int lineno)
+    private List<byte> GetPinValuesFromFileLine(string line, int lineno)
     {
         List<byte> list = new List<byte>();
         if (line.Length > 0 && line.ToUpper()[0] == 'B')
@@ -254,6 +255,8 @@ public partial class MicrocontrollerSimulator
         {
             this.timings[key].x.Clear();
             this.timings[key].y.Clear();
+            this.timings[key].x.Add(0);
+            this.timings[key].y.Add(false);
         }
 
         this.testVectorText = Convert.ToString(await this.js.InvokeAsync<object>("testVectorEditor.session.getValue"));
@@ -283,6 +286,8 @@ public partial class MicrocontrollerSimulator
                     await this.js.InvokeVoidAsync("removeAllTestVectorMarkers");
 
                 await this.js.InvokeVoidAsync("addTestVectorMarker", lineno - 1);
+                await this.js.InvokeVoidAsync("scrollToLine", lineno - 1);
+
                 if (current.Length > 0)
                 {
                     if (current.ToUpper().Contains("GENERATETD"))
@@ -339,7 +344,7 @@ public partial class MicrocontrollerSimulator
                             }
                             else
                             {
-                                List<byte> pinValuesFromFileLine = await this.GetPinValuesFromFileLine(array2[1], lineno);
+                                List<byte> pinValuesFromFileLine = this.GetPinValuesFromFileLine(array2[1], lineno);
                                 if (pinValuesFromFileLine == null)
                                     this.runFromInputVectorsThreadIsRunning = false;
                                 else
@@ -397,7 +402,7 @@ public partial class MicrocontrollerSimulator
                             this.runFromInputVectorsThreadIsRunning = false;
                             break;
                         }
-                        List<byte> values = await this.GetPinValuesFromFileLine(current, lineno);
+                        List<byte> values = this.GetPinValuesFromFileLine(current, lineno);
                         if (values == null)
                         {
                             this.runFromInputVectorsThreadIsRunning = false;
@@ -415,18 +420,21 @@ public partial class MicrocontrollerSimulator
                             VMInterface.SetPin(this.vm.vm, this.APins[i], values[i]);
                             this.UpdateAValue();
 
-                            this.timings[a.ElementAt(i)].x.Add(this.timeSpan.TotalMilliseconds);
-                            this.timings[a.ElementAt(i)].y.Add(val);
+                            if (this.timeSpan.TotalMilliseconds != 0d)
+                            {
+                                this.timings[a.ElementAt(i)].x.Add(this.timeSpan.TotalMilliseconds);
+                                this.timings[a.ElementAt(i)].y.Add(val);
+                            }
                         }
                     }
                 }
             }
-            //File.WriteAllLines("timings.csv", this.timings.Select(k => string.Format("{0},{1},,{2}", k.Key, string.Join(',', k.Value.x), string.Join(',', k.Value.y))));
         }
         catch (Exception ex2)
         {
-            if (!ex2.Message.ToUpper().Contains("ABORT"))
-                this.Snackbar.Add("Caught exception running test vector\n" + ex2.Message + "\n" + ex2.StackTrace, Severity.Error);
+            /* if (!ex2.Message.ToUpper().Contains("ABORT"))
+                   this.Snackbar.Add("Caught exception running test vector\n" + ex2.Message + "\n" + ex2.StackTrace, Severity.Error); 
+            */
         }
         this.testVectorReadOnly = false;
         this.runFromInputVectorsThreadIsRunning = false;
@@ -444,4 +452,33 @@ public partial class MicrocontrollerSimulator
         this.runFromInputVectorsThreadIsRunning = true;
     }
 
+    private void TimingToCsv()
+    {
+        StringBuilder sb = new StringBuilder();
+        Dictionary<string, (List<object> x, List<object> y)> t = this.timings.OrderBy(x => x.Key)
+                                                                             .ToDictionary(x => x.Key, x => x.Value);
+        // Write header
+        foreach (string s in t.Keys)
+            sb.Append(string.Format("{0},{0},", s));
+
+        --sb.Length; // Remove the trailing comma
+        sb.AppendLine();
+
+        // Get the maximum number of items in the lists
+        int maxItemCount = Math.Max(t.Values.Max(x => x.x.Count), t.Values.Max(x => x.y.Count));
+
+        // Write data rows
+        for (int i = 0; i < maxItemCount; i++)
+        {
+            foreach ((string _, (List<object> x, List<object> y)) in t)
+            {
+                sb.Append((i < x.Count) ? x[i].ToString() : "").Append(',')
+                  .Append((i < y.Count) ? y[i].ToString() : "").Append(',');
+            }
+            --sb.Length; // Remove the trailing comma
+            sb.AppendLine();
+        }
+
+        File.WriteAllText("timings.csv", sb.ToString());
+    }
 }

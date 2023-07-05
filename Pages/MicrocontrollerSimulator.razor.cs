@@ -3,6 +3,7 @@ using mcsim.Data.MicrocontrollerSimulator.Components;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
+using Plotly.Blazor.ConfigLib;
 using Plotly.Blazor.Traces;
 using Plotly.Blazor.Traces.ScatterLib;
 using System;
@@ -222,7 +223,11 @@ public partial class MicrocontrollerSimulator
         {
             await process.WaitForExitAsync();
         }
+        int row = await this.js.InvokeAsync<int>("getCurrentLine");
+        int col = await this.js.InvokeAsync<int>("getCurrentColumn");
+
         await this.js.InvokeAsync<string>("aceEditor.session.setValue", await File.ReadAllTextAsync(this.fileName));
+        await this.js.InvokeVoidAsync("aceEditor.gotoLine", row + 1, col, true);
         File.Delete(this.fileName);
     }
 
@@ -234,7 +239,7 @@ public partial class MicrocontrollerSimulator
         {
             await this.InvokeAsync(this.StateHasChanged);
             await this.js.InvokeVoidAsync("initTestVectorEditor");
-            System.Diagnostics.Debug.WriteLine(this.testVectorText);
+            Debug.WriteLine(this.testVectorText);
         }
     }
 
@@ -291,7 +296,7 @@ public partial class MicrocontrollerSimulator
             this.timings = new ConcurrentDictionary<string, (List<object> x, List<object> y)>();
             for (int i = 0; i < pinStr.Count(); i++)
             {
-                this.timings.TryAdd(pinStr.ElementAt(i), (new List<object>() { 0 }, new List<object>() { 0 }));
+                this.timings.TryAdd(pinStr.ElementAt(i), (new List<object>(), new List<object>()));
                 this.chartData.Add(new Scatter()
                 {
                     Name = pinStr.ElementAt(i),
