@@ -80,7 +80,7 @@
             await using (System.IO.Stream stream = this.file.OpenReadStream(1024 * 1024))
             {
                 using StreamReader reader = new StreamReader(stream);
-                Dictionary<string, (List<object> x, List<object> y)> timings = JsonConvert.DeserializeObject<Dictionary<string, (List<object> x, List<object> y)>>(await reader.ReadToEndAsync());
+                Dictionary<string, (List<double> x, List<bool> y)> timings = JsonConvert.DeserializeObject<Dictionary<string, (List<double> x, List<bool> y)>>(await reader.ReadToEndAsync());
                 await this.InvokeAsync(async () => await this.chart.Clear());
                 for (int i = 0; i < pinStr.Count(); i++)
                 {
@@ -88,8 +88,8 @@
                         {
                             Name = pinStr.ElementAt(i),
                             Mode = ModeFlag.Lines,
-                            X = timings[this.pinStr.ElementAt(i)].x.Prepend(0).ToList(),
-                            Y = timings[this.pinStr.ElementAt(i)].y.Prepend(0).ToList(),
+                            X = timings[this.pinStr.ElementAt(i)].x.Cast<object>().ToList(),
+                            Y = timings[this.pinStr.ElementAt(i)].y.Cast<object>().ToList(),
                             Fill = FillEnum.None
                         });
                 }

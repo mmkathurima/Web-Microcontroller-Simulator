@@ -293,10 +293,10 @@ public partial class MicrocontrollerSimulator
             await js.InvokeAsync<string>("SetDotNetHelper", this.aref);
             VMInterface.SetIPP(this.vm.vm, this.ipp);
 
-            this.timings = new ConcurrentDictionary<string, (List<object> x, List<object> y)>();
+            this.timings = new ConcurrentDictionary<string, (List<double> x, List<bool> y)>();
             for (int i = 0; i < pinStr.Count(); i++)
             {
-                this.timings.TryAdd(pinStr.ElementAt(i), (new List<object>(), new List<object>()));
+                this.timings.TryAdd(pinStr.ElementAt(i), (new List<double>(), new List<bool>()));
                 this.chartData.Add(new Scatter()
                 {
                     Name = pinStr.ElementAt(i),

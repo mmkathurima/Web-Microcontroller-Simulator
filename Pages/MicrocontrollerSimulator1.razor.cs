@@ -14,7 +14,6 @@ using Plotly.Blazor.Traces.ScatterLib;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -24,7 +23,7 @@ namespace mcsim.Pages;
 
 public partial class MicrocontrollerSimulator
 {
-    private ConcurrentDictionary<string, (List<object> x, List<object> y)> timings;
+    private ConcurrentDictionary<string, (List<double> x, List<bool> y)> timings;
     private bool fromVectors = false;
     private IEnumerable<string> pinStr = Enumerable.Range(0, 16)
                                                    .Select(x => x < 8 ? string.Format("A{0}", x) : string.Format("B{0}", x - 8));
@@ -455,8 +454,8 @@ public partial class MicrocontrollerSimulator
     private void TimingToCsv()
     {
         StringBuilder sb = new StringBuilder();
-        Dictionary<string, (List<object> x, List<object> y)> t = this.timings.OrderBy(x => x.Key)
-                                                                             .ToDictionary(x => x.Key, x => x.Value);
+        Dictionary<string, (List<double> x, List<bool> y)> t = this.timings.OrderBy(x => x.Key)
+                                                                           .ToDictionary(x => x.Key, x => x.Value);
         // Write header
         foreach (string s in t.Keys)
             sb.Append(string.Format("{0},{0},", s));
@@ -470,10 +469,12 @@ public partial class MicrocontrollerSimulator
         // Write data rows
         for (int i = 0; i < maxItemCount; i++)
         {
-            foreach ((string _, (List<object> x, List<object> y)) in t)
+            foreach (KeyValuePair<string, (List<double> x, List<bool> y)> kv in t)
             {
-                sb.Append((i < x.Count) ? x[i].ToString() : "").Append(',')
-                  .Append((i < y.Count) ? y[i].ToString() : "").Append(',');
+                sb.Append((i < kv.Value.x.Count) ? kv.Value.x[i].ToString() : "")
+                  .Append(',')
+                  .Append((i < kv.Value.y.Count) ? kv.Value.y[i].ToString() : "")
+                  .Append(',');
             }
             --sb.Length; // Remove the trailing comma
             sb.AppendLine();

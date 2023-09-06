@@ -211,8 +211,10 @@ public partial class MicrocontrollerSimulator
 
         foreach (string i in this.pinStr.Take(8))
         {
-            this.timings[i].x.Add(this.timings.Values.Select(tuple => tuple.x).SelectMany(list => list)
-                                                     .Select(Convert.ToDouble).Max());
+            this.timings[i].x.Add(this.timings.Values.Select(tuple => tuple.x)
+                                                     .SelectMany(list => list)
+                                                     .Select(Convert.ToDouble)
+                                                     .Max());
             this.timings[i].y.Add(false);
         }
 
@@ -223,8 +225,8 @@ public partial class MicrocontrollerSimulator
             {
                 Name = pinStr.ElementAt(i),
                 Mode = ModeFlag.Lines,
-                X = this.timings[this.pinStr.ElementAt(i)].x,
-                Y = this.timings[this.pinStr.ElementAt(i)].y,
+                X = this.timings[this.pinStr.ElementAt(i)].x.Cast<object>().ToList(),
+                Y = this.timings[this.pinStr.ElementAt(i)].y.Cast<object>().ToList(),
                 Fill = FillEnum.None
             });
         }
