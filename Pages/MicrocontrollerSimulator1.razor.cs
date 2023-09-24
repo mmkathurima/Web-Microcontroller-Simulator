@@ -219,7 +219,11 @@ public partial class MicrocontrollerSimulator
                 {
                     byte b = Convert.ToByte(item2.ToString(), 16);
                     for (int i = 0; i <= 3; i++)
-                        list.Add(Convert.ToByte((i == 0 ? b : (b >> i)) & 1u));
+                    {
+                        if (i == 0)
+                            list.Add(Convert.ToByte(((int)b) & 1u));
+                        else list.Add(Convert.ToByte((b >> i) & 1u));
+                    }
                 }
                 catch (Exception)
                 {
@@ -233,7 +237,12 @@ public partial class MicrocontrollerSimulator
         {
             int num = Convert.ToInt32(line);
             for (int i = 0; i <= 7; i++)
-                list.Add(Convert.ToByte((i == 0 ? num : (num >> i)) & 1u));
+            {
+                if (i == 0)
+                    list.Add(Convert.ToByte((num) & 1u));
+                else list.Add(Convert.ToByte((num >> i) & 1u));
+            }
+
             return list;
         }
         catch (Exception)
@@ -254,7 +263,7 @@ public partial class MicrocontrollerSimulator
         }
 
         this.testVectorText = Convert.ToString(await this.js.InvokeAsync<object>("testVectorEditor.session.getValue"));
-        IEnumerable<string> input = testVectorText.Split('\n');
+        IEnumerable<string> input = this.testVectorText.Split('\n');
         this.PushButton = false;
         int lineno;
         try
@@ -343,44 +352,44 @@ public partial class MicrocontrollerSimulator
                                     this.runFromInputVectorsThreadIsRunning = false;
                                 else
                                 {
-                                    if (VMInterface.GetPin(vm.vm, Pins.B0) != pinValuesFromFileLine[0])
+                                    if (VMInterface.GetPin(this.vm.vm, Pins.B0) != pinValuesFromFileLine[0])
                                     {
                                         this.Snackbar.Add("Assert failed:" + lineno + ": B0 not equal " + pinValuesFromFileLine[0], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
-                                    else if (VMInterface.GetPin(vm.vm, Pins.B1) != pinValuesFromFileLine[1])
+                                    else if (VMInterface.GetPin(this.vm.vm, Pins.B1) != pinValuesFromFileLine[1])
                                     {
                                         this.Snackbar.Add("Assert failed:" + lineno + ": B1 not equal " + pinValuesFromFileLine[1], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
-                                    else if (VMInterface.GetPin(vm.vm, Pins.B2) != pinValuesFromFileLine[2])
+                                    else if (VMInterface.GetPin(this.vm.vm, Pins.B2) != pinValuesFromFileLine[2])
                                     {
                                         this.Snackbar.Add("Assert failed:" + lineno + ": B2 not equal " + pinValuesFromFileLine[2], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
-                                    else if (VMInterface.GetPin(vm.vm, Pins.B3) != pinValuesFromFileLine[3])
+                                    else if (VMInterface.GetPin(this.vm.vm, Pins.B3) != pinValuesFromFileLine[3])
                                     {
                                         this.Snackbar.Add("Assert failed:" + lineno + ": B3 not equal " + pinValuesFromFileLine[3], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
-                                    else if (VMInterface.GetPin(vm.vm, Pins.B4) != pinValuesFromFileLine[4])
+                                    else if (VMInterface.GetPin(this.vm.vm, Pins.B4) != pinValuesFromFileLine[4])
                                     {
                                         this.Snackbar.Add("Assert failed:" + lineno + ": B4 not equal " + pinValuesFromFileLine[4], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
-                                    else if (VMInterface.GetPin(vm.vm, Pins.B5) != pinValuesFromFileLine[5])
+                                    else if (VMInterface.GetPin(this.vm.vm, Pins.B5) != pinValuesFromFileLine[5])
                                     {
                                         this.Snackbar.Add("Assert failed:" + lineno + ": B5 not equal " + pinValuesFromFileLine[5], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
-                                    else if (VMInterface.GetPin(vm.vm, Pins.B6) != pinValuesFromFileLine[6])
+                                    else if (VMInterface.GetPin(this.vm.vm, Pins.B6) != pinValuesFromFileLine[6])
                                     {
                                         this.Snackbar.Add("Assert failed:" + lineno + ": B6 not equal " + pinValuesFromFileLine[6], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
                                     }
                                     else
                                     {
-                                        if (VMInterface.GetPin(vm.vm, Pins.B7) == pinValuesFromFileLine[7])
+                                        if (VMInterface.GetPin(this.vm.vm, Pins.B7) == pinValuesFromFileLine[7])
                                             continue;
                                         this.Snackbar.Add("Assert failed:" + lineno + ": B7 not equal " + pinValuesFromFileLine[7], Severity.Error);
                                         this.runFromInputVectorsThreadIsRunning = false;
@@ -429,6 +438,7 @@ public partial class MicrocontrollerSimulator
             /* if (!ex2.Message.ToUpper().Contains("ABORT"))
                    this.Snackbar.Add("Caught exception running test vector\n" + ex2.Message + "\n" + ex2.StackTrace, Severity.Error); 
             */
+            throw;
         }
         this.testVectorReadOnly = false;
         this.runFromInputVectorsThreadIsRunning = false;
@@ -466,9 +476,9 @@ public partial class MicrocontrollerSimulator
         {
             foreach (KeyValuePair<string, (List<double> x, List<bool> y)> kv in t)
             {
-                sb.Append((i < kv.Value.x.Count) ? kv.Value.x[i].ToString() : "")
+                sb.Append((i < kv.Value.x.Count) ? kv.Value.x[i].ToString() : string.Empty)
                   .Append(',')
-                  .Append((i < kv.Value.y.Count) ? kv.Value.y[i].ToString() : "")
+                  .Append((i < kv.Value.y.Count) ? kv.Value.y[i].ToString() : string.Empty)
                   .Append(',');
             }
             --sb.Length; // Remove the trailing comma

@@ -44,8 +44,8 @@ public partial class AStyleInterface
     /// Declare callback functions.
     public AStyleInterface()
     {
-        AStyleMemAlloc = new AStyleMemAllocDelgate(OnAStyleMemAlloc);
-        AStyleError = new AStyleErrorDelgate(OnAStyleError);
+        this.AStyleMemAlloc = new AStyleMemAllocDelgate(OnAStyleMemAlloc);
+        this.AStyleError = new AStyleErrorDelgate(OnAStyleError);
     }
 
     /// Call the AStyleMainUtf16 function in Artistic Style.
@@ -57,7 +57,7 @@ public partial class AStyleInterface
         string sTextOut = string.Empty;
         try
         {
-            nint pText = AStyleMainUtf16(textIn, options, AStyleError, AStyleMemAlloc);
+            nint pText = AStyleMainUtf16(textIn, options, this.AStyleError, this.AStyleMemAlloc);
             if (pText != nint.Zero)
             {
                 sTextOut = Marshal.PtrToStringUni(pText);
@@ -91,9 +91,7 @@ public partial class AStyleInterface
         {
             nint pVersion = AStyleGetVersion();
             if (pVersion != nint.Zero)
-            {
                 sVersion = Marshal.PtrToStringAnsi(pVersion);
-            }
         }
         catch (BadImageFormatException e)
         {

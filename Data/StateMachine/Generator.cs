@@ -10,11 +10,7 @@ namespace mcsim.Data.StateMachine
         private bool enableu = false;
         private int CPriority = 0;
         private Graph graph;
-        private string output = "";
-
-        public string Replace(string str, string search, string replacement) =>
-            string.Join(replacement, str.Split(search));
-
+        private string output = string.Empty;
 
         public Generator(Graph g)
         {
@@ -33,24 +29,24 @@ namespace mcsim.Data.StateMachine
 
         private void GenerateSingle()
         {
-            output += GenerateHeader();
+            this.output += this.GenerateHeader();
 
-            if (enablet)
+            if (this.enablet)
             {
-                output += "unsigned char " + graph.Abbrv + "_Clk;\r\n";
-                output += "void TimerISR() {\r\n   " + graph.Abbrv + "_Clk = 1;\r\n}\r\n\r\n";
+                this.output += "unsigned char " + this.graph.Abbrv + "_Clk;\r\n";
+                this.output += "void TimerISR() {\r\n   " + this.graph.Abbrv + "_Clk = 1;\r\n}\r\n\r\n";
             }
 
-            if (enableu)
+            if (this.enableu)
             {
-                output += "unsigned char " + graph.Abbrv + "_rx_flag = 0;\r\n";
-                output += "void RxISR() {\r\n   " + graph.Abbrv + "_rx_flag = 1;\r\n}\r\n\r\n";
+                this.output += "unsigned char " + this.graph.Abbrv + "_rx_flag = 0;\r\n";
+                this.output += "void RxISR() {\r\n   " + this.graph.Abbrv + "_rx_flag = 1;\r\n}\r\n\r\n";
             }
 
-            output += "enum " + graph.Abbrv + "_States { ";
+            this.output += "enum " + this.graph.Abbrv + "_States { ";
 
             int num = 0;
-            foreach (Node node in graph.Nodes)
+            foreach (Node node in this.graph.Nodes)
             {
                 num++;
                 if (!(node.Name == "NONAME"))
@@ -58,80 +54,72 @@ namespace mcsim.Data.StateMachine
                     if (node.Name.Length == 0)
                     {
                         Debug.WriteLine("Error: All states must be named.");
-                        output = "";
+                        this.output = "";
                         return;
                     }
 
-                    output += graph.Abbrv + "_" + node.Name;
+                    this.output += this.graph.Abbrv + "_" + node.Name;
 
-                    if (num < graph.NumStates)
-                        output += ", ";
-                    else
-                        output += " } " + graph.Abbrv + "_State;\r\n\r\n";
+                    if (num < this.graph.NumStates)
+                        this.output += ", ";
+                    else this.output += " } " + this.graph.Abbrv + "_State;\r\n\r\n";
                 }
             }
 
-            output += "TickFct_" + graph.Name.Replace(" ", "_") + "() {\r\n   ";
+            this.output += "TickFct_" + this.graph.Name.Replace(" ", "_") + "() {\r\n   ";
 
-            for (int i = 0; i < graph.Nodes.Count; i++)
+            for (int i = 0; i < this.graph.Nodes.Count; i++)
             {
-                Node node2 = graph.Nodes[i];
+                Node node2 = this.graph.Nodes[i];
                 if (node2.ForLoopEnabled && !node2.Loop.Equals(default(LoopStruct)))
                 {
-                    output += "static int " + graph.Abbrv + "_" + node2.Name + "_" + node2.Loop.Initial + ";\n   ";
+                    this.output += "static int " + this.graph.Abbrv + "_" + node2.Name + "_" + node2.Loop.Initial + ";\n   ";
                     string[] array = node2.Loop.Initial.Split('=');
                     node2.Loop = node2.Loop with
                     {
-                        LoopVar = graph.Abbrv + "_" + node2.Name + "_" + array[0],
-                        UpdateCVar = Replace(node2.Loop.Update, array[0], node2.Loop.LoopVar),
-                        ConditionCVar = Replace(node2.Loop.Condition, array[0], node2.Loop.LoopVar)
+                        LoopVar = this.graph.Abbrv + "_" + node2.Name + "_" + array[0],
+                        UpdateCVar = string.Join(node2.Loop.LoopVar, node2.Loop.Update.Split(array[0])),
+                        ConditionCVar = string.Join(node2.Loop.LoopVar, node2.Loop.Condition.Split(array[0]))
                     };
                 }
             }
 
-            output += GenerateStateMachineExternal();
-            output += "}\r\n\r\n";
-            output += "int main() {\r\n   ";
+            this.output += this.GenerateStateMachineExternal();
+            this.output += "}\r\n\r\n";
+            this.output += "int main() {\r\n   ";
 
-            if (enablet)
+            if (this.enablet)
             {
-                output += "const unsigned int period" + graph.Name.Replace(" ", "_") + " = " + graph.Period + ";";
+                this.output += "const unsigned int period" + this.graph.Name.Replace(" ", "_") + " = " + this.graph.Period + ";";
 
-                if (graph.Period == "1000")
-                {
-                    output += " // 1000 ms default\r\n   ";
-                }
-                else
-                {
-                    output += "\r\n   ";
-                }
+                if (this.graph.Period == "1000")
+                    this.output += " // 1000 ms default\r\n   ";
+                else this.output += "\r\n   ";
 
-                output += "TimerSet(period" + graph.Name.Replace(" ", "_") + ");\r\n   TimerOn();\r\n   ";
+                this.output += "TimerSet(period" + this.graph.Name.Replace(" ", "_") + ");\r\n   TimerOn();\r\n   ";
             }
 
-            if (enableu)
-            {
-                output += "UARTOn();\r\n\r\n";
-            }
+            if (this.enableu)
+                this.output += "UARTOn();\r\n\r\n";
 
-            if (graph.InitialStateName.Length != 0)
+            if (this.graph.InitialStateName.Length != 0)
             {
-                output += "\r\n   " + graph.Abbrv + "_State = -1; // Initial state\r\n   ";
-                output += "B = 0; // Init outputs\r\n\r\n   ";
-                output += "while (1) {\r\n      TickFct_" + graph.Name.Replace(" ", "_") + "();";
+                this.output += "\r\n   " + this.graph.Abbrv + "_State = -1; // Initial state\r\n   ";
+                this.output += "B = 0; // Init outputs\r\n\r\n   ";
+                this.output += "while (1) {\r\n      TickFct_" + this.graph.Name.Replace(" ", "_") + "();";
 
-                if (enablet)
+                if (this.enablet)
                 {
-                    output += "\r\n      while (!" + graph.Abbrv + "_Clk);";
-                    output += "\r\n      " + graph.Abbrv + "_Clk = 0;\r\n   ";
+                    this.output += "\r\n      while (!" + this.graph.Abbrv + "_Clk);";
+                    this.output += "\r\n      " + this.graph.Abbrv + "_Clk = 0;\r\n   ";
                 }
 
-                output += "\r\n   } // while (1)\r\n} // Main";
+                this.output += "\r\n   } // while (1)\r\n} // Main";
             }
             else
             {
                 Debug.WriteLine("Error: Initial state not selected");
-                output = "";
+                this.output = "";
             }
         }
 
@@ -140,29 +128,25 @@ namespace mcsim.Data.StateMachine
             string time = DateTime.Now.ToString("MM'/'dd'/'yyyy HH:mm:ss");
 
             string text = "/*\r\n* This code was automatically generated using the State Machine Builder tool\r\n* " +
-                "at " + time + "\r\n*/\r\n\r\n" + "#include \"rims.h\"\r\n\r\n";
+                "at " + time + "\r\n*/\r\n\r\n#include \"rims.h\"\r\n\r\n";
 
-            if (graph.GlobalCode.Length > 0)
-            {
-                text += graph.GlobalCode + "\r\n";
-            }
+            if (this.graph.GlobalCode.Length > 0)
+                text += this.graph.GlobalCode + "\r\n";
 
             return text;
         }
 
-        public string GenerateStateMachineExternal()
+        private string GenerateStateMachineExternal()
         {
             string text = "";
             bool flag = false;
-            text = text + "switch (" + graph.Abbrv + "_State) { // Transitions\r\n   ";
-            text += "   case -1:\r\n";
-            if (graph.InitEdge.Actions != "")
-            {
-                text = text + "         " + graph.InitEdge.Actions.Replace("\n", "\r\n         ") + "\r\n";
-            }
+            text = text + "switch (" + this.graph.Abbrv + "_State) { // Transitions\r\n      case -1:\r\n";
+            if (this.graph.InitEdge.Actions != "")
+                text = text + "         " + this.graph.InitEdge.Actions.Replace("\n", "\r\n         ") + "\r\n";
+
             string text6 = text;
-            text = text6 + "         " + graph.Abbrv + "_State = " + graph.Abbrv + "_" + graph.InitialStateName + ";\r\n         break;\r\n      ";
-            foreach (var node in graph.Nodes)
+            text = text6 + "         " + this.graph.Abbrv + "_State = " + this.graph.Abbrv + "_" + this.graph.InitialStateName + ";\r\n         break;\r\n      ";
+            foreach (Node node in this.graph.Nodes)
             {
                 if (node.Name == "NONAME")
                     continue;
@@ -172,15 +156,15 @@ namespace mcsim.Data.StateMachine
                     bool _ = node.ForLoopEnabled;
                 }
                 string text7 = text;
-                text = text7 + "   case " + graph.Abbrv + "_" + node.Name + ": ";
+                text = text7 + "   case " + this.graph.Abbrv + "_" + node.Name + ": ";
                 bool flag2 = false;
                 int index = -1;
                 int num = 0;
-                CPriority = 1;
+                this.CPriority = 1;
                 if (node.PriorityEnabled)
                 {
                     int num2 = 1;
-                    foreach (var edge in graph.Edges)
+                    foreach (Edge edge in this.graph.Edges)
                     {
                         if (edge.Condition.Length == 0)
                         {
@@ -190,29 +174,29 @@ namespace mcsim.Data.StateMachine
                         if (edge.Tail == node)
                             num2++;
                     }
-                    while (CPriority < num2)
+                    while (this.CPriority < num2)
                     {
-                        foreach (var edge2 in graph.Edges)
+                        foreach (Edge edge2 in this.graph.Edges)
                         {
                             bool flag3 = false;
                             if (edge2.Tail == node)
                             {
                                 if (edge2.Condition.ToLower() != "other")
                                 {
-                                    if (edge2.Priority == CPriority && CPriority == 1)
+                                    if (edge2.Priority == this.CPriority && this.CPriority == 1)
                                     {
                                         string text8 = text;
                                         text = text8 + "\r\n         if (" + edge2.Condition + ") {\r\n            " +
-                                            graph.Abbrv + "_State = " + graph.Abbrv + "_" + edge2.Head.Name + ";";
-                                        CPriority++;
+                                            this.graph.Abbrv + "_State = " + this.graph.Abbrv + "_" + edge2.Head.Name + ";";
+                                        this.CPriority++;
                                         flag3 = true;
                                     }
-                                    else if (edge2.Priority == CPriority)
+                                    else if (edge2.Priority == this.CPriority)
                                     {
                                         string text9 = text;
                                         text = text9 + "\r\n         else if (" + edge2.Condition + ") {\r\n            " +
-                                            graph.Abbrv + "_State = " + graph.Abbrv + "_" + edge2.Head.Name + ";";
-                                        CPriority++;
+                                            this.graph.Abbrv + "_State = " + this.graph.Abbrv + "_" + edge2.Head.Name + ";";
+                                        this.CPriority++;
                                         flag3 = true;
                                     }
                                     if (edge2.Actions.Length > 0 && flag3)
@@ -237,7 +221,7 @@ namespace mcsim.Data.StateMachine
                 }
                 else
                 {
-                    foreach (var edge3 in graph.Edges)
+                    foreach (Edge edge3 in this.graph.Edges)
                     {
                         if (edge3.Condition.Length == 0)
                         {
@@ -248,7 +232,7 @@ namespace mcsim.Data.StateMachine
                         {
                             string text10 = text;
                             text = text10 + "\r\n         if (" + node.Loop.ConditionCVar + ") {\r\n            " +
-                                graph.Abbrv + "_State = " + graph.Abbrv + "_" + node.Name + ";\n            " +
+                                this.graph.Abbrv + "_State = " + this.graph.Abbrv + "_" + node.Name + ";\n            " +
                                 node.Loop.UpdateCVar + ";\n         }";
                             flag = true;
                         }
@@ -260,7 +244,7 @@ namespace mcsim.Data.StateMachine
                                 {
                                     string text11 = text;
                                     text = text11 + "\r\n         if (" + edge3.Condition + ") {\r\n            " +
-                                        graph.Abbrv + "_State = " + graph.Abbrv + "_" + edge3.Head.Name + ";";
+                                        this.graph.Abbrv + "_State = " + this.graph.Abbrv + "_" + edge3.Head.Name + ";";
                                     flag = true;
                                 }
                                 else
@@ -269,22 +253,26 @@ namespace mcsim.Data.StateMachine
                                     {
                                         string text12 = text;
                                         text = text12 + "\r\n         else if (!(" + node.Loop.ConditionCVar + ")) {\r\n            " +
-                                            graph.Abbrv + "_State = " + graph.Abbrv + "_" + edge3.Head.Name + ";";
+                                            this.graph.Abbrv + "_State = " + this.graph.Abbrv + "_" + edge3.Head.Name + ";";
                                         string text13 = text;
-                                        text = text13 + "\r\n            " + graph.Abbrv + "_" + node.Name + "_" +
+                                        text = text13 + "\r\n            " + this.graph.Abbrv + "_" + node.Name + "_" +
                                             node.Loop.Initial + ";";
-                                        text = edge3.Actions.Length <= 0 ? text + "\r\n         }" :
-                                            text + "\r\n            " + edge3.Actions.Replace("\n", "\r\n            ")
-                                                + "\r\n         }";
+                                        if (edge3.Actions.Length <= 0)
+                                            text += "\r\n         }";
+                                        else
+                                            text = text + "\r\n            " + edge3.Actions.Replace("\n", "\r\n            ") + "\r\n         }";
+
                                         num++;
                                         break;
                                     }
                                     string text2 = text;
                                     text = text2 + "\r\n         else if (" + edge3.Condition + ") {\r\n            " +
-                                        graph.Abbrv + "_State = " + graph.Abbrv + "_" + edge3.Head.Name + ";";
+                                        this.graph.Abbrv + "_State = " + this.graph.Abbrv + "_" + edge3.Head.Name + ";";
                                 }
-                                text = edge3.Actions.Length <= 0 ? text + "\r\n         }" : text + "\r\n            " +
-                                    edge3.Actions.Replace("\n", "\r\n            ") + "\r\n         }";
+                                if (edge3.Actions.Length <= 0)
+                                    text += "\r\n         }";
+                                else
+                                    text = text + "\r\n            " + edge3.Actions.Replace("\n", "\r\n            ") + "\r\n         }";
                             }
                             else
                             {
@@ -303,25 +291,28 @@ namespace mcsim.Data.StateMachine
                 if (flag2)
                 {
                     string text3 = text;
-                    text = text3 + "\r\n         else {\r\n            " + graph.Abbrv + "_State = " + graph.Abbrv +
-                        "_" + graph.Edges[index].Head.Name + ";";
-                    text = graph.Edges[index].Actions.Length <= 0 ? text + "\r\n         }" :
-                        text + "\r\n            " + graph.Edges[index].Actions.Replace("\n", "\r\n            ") + "\r\n         }";
+                    text = text3 + "\r\n         else {\r\n            " + this.graph.Abbrv + "_State = " + this.graph.Abbrv +
+                        "_" + this.graph.Edges[index].Head.Name + ";";
+                    if (this.graph.Edges[index].Actions.Length <= 0)
+                        text += "\r\n         }";
+                    else
+                        text = text + "\r\n            " + this.graph.Edges[index].Actions.Replace("\n", "\r\n            ") + "\r\n         }";
                 }
                 flag = false;
                 text += "\r\n         break;\r\n   ";
             }
             string text4 = text;
-            text = text4 + "   default:\r\n         " + graph.Abbrv + "_State = " + graph.Abbrv + "_" + graph.InitialStateName + ";\r\n   } // Transitions\r\n\r\n   ";
-            text = text + "switch(" + graph.Abbrv + "_State) { // State actions\r\n   ";
-            List<Node> node2_source_ = graph.Nodes;
+            text = text4 + "   default:\r\n         " + this.graph.Abbrv + "_State = " + this.graph.Abbrv + "_" +
+                this.graph.InitialStateName + ";\r\n   } // Transitions\r\n\r\n   ";
+            text = text + "switch(" + this.graph.Abbrv + "_State) { // State actions\r\n   ";
+            List<Node> node2_source_ = this.graph.Nodes;
             for (int node2_index_ = 0; node2_index_ < node2_source_.Count; node2_index_++)
             {
                 Node node2 = node2_source_[node2_index_];
                 if (!(node2.Name == "NONAME"))
                 {
                     string text5 = text;
-                    text = text5 + "   case " + graph.Abbrv + "_" + node2.Name + ":\r\n         ";
+                    text = text5 + "   case " + this.graph.Abbrv + "_" + node2.Name + ":\r\n         ";
                     text += node2.Actions.Replace("\n", "\n         ");
                     if (node2.Actions.Length > 2 && node2.Actions[node2.Actions.Length - 2] != '\\')
                         text += "\r\n         ";

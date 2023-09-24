@@ -20,5 +20,4 @@ namespace mcsim.Data.StateMachine
             this.Actions = actions;
         }
     }
-
 }

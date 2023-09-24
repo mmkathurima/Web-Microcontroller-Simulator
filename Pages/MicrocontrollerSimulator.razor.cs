@@ -64,7 +64,7 @@ public partial class MicrocontrollerSimulator
 
     private async Task<string> EditorText()
     {
-        return Convert.ToString(await js.InvokeAsync<object>("aceEditor.session.getValue"));
+        return Convert.ToString(await this.js.InvokeAsync<object>("aceEditor.session.getValue"));
     }
 
     private async Task RunCode()
@@ -90,7 +90,7 @@ public partial class MicrocontrollerSimulator
                     this.ResetStopWatch();
                     this.StartStopWatch(false);
                     if (this.TestVectorEnabled)
-                        await RunInputVectors();
+                        await this.RunInputVectors();
                 }
             }
         }
@@ -284,21 +284,21 @@ public partial class MicrocontrollerSimulator
     {
         if (firstRender)
         {
-            await js.InvokeVoidAsync("msimLoad");
+            await this.js.InvokeVoidAsync("msimLoad");
             this.vm = new VM();
             this.vm.vm = VMInterface.CreateVM();
             this.vm_terminate = new VM();
             this.aref = DotNetObjectReference.Create(this);
-            await js.InvokeAsync<string>("SetDotNetHelper", this.aref);
+            await this.js.InvokeAsync<string>("SetDotNetHelper", this.aref);
             VMInterface.SetIPP(this.vm.vm, this.ipp);
 
             this.timings = new ConcurrentDictionary<string, (List<double> x, List<bool> y)>();
-            for (int i = 0; i < pinStr.Count(); i++)
+            for (int i = 0; i < this.pinStr.Count(); i++)
             {
-                this.timings.TryAdd(pinStr.ElementAt(i), (new List<double>(), new List<bool>()));
+                this.timings.TryAdd(this.pinStr.ElementAt(i), (new List<double>(), new List<bool>()));
                 this.chartData.Add(new Scatter()
                 {
-                    Name = pinStr.ElementAt(i),
+                    Name = this.pinStr.ElementAt(i),
                     Mode = ModeFlag.Lines,
                     X = new List<object>() { 0 },
                     Y = new List<object>() { 0 },

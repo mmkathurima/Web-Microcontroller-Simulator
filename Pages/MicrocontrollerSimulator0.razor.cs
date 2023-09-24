@@ -53,14 +53,14 @@ public partial class MicrocontrollerSimulator
             location += array[num];
             location += "\\";
         }
-        VMInterface.SetBaseDirectory(vm.vm, location);
+        VMInterface.SetBaseDirectory(this.vm.vm, location);
         if (!File.Exists(Environment.GetEnvironmentVariable("TEMP") + "\\RIMS.h"))
             File.Copy(location + "RIMS.h", Environment.GetEnvironmentVariable("TEMP") + "\\RIMS.h", overwrite: true);
 
-        int num2 = VMInterface.Compile(vm.vm);
+        int num2 = VMInterface.Compile(this.vm.vm);
         const int num3 = 1024;
         StringBuilder stringBuilder = new StringBuilder(num3);
-        VMInterface.GetLastAsmLoc(vm.vm, stringBuilder, (uint)num3);
+        VMInterface.GetLastAsmLoc(this.vm.vm, stringBuilder, (uint)num3);
         string asmloc = Environment.GetEnvironmentVariable("TEMP") + stringBuilder.ToString();
         try
         {
@@ -76,7 +76,7 @@ public partial class MicrocontrollerSimulator
             for (int i = 0; i < Marshal.SizeOf(typeof(ErrorStruct)); i++)
                 ptr[i] = 0;
         }
-        VMInterface.GetErrors(vm.vm, intPtr);
+        VMInterface.GetErrors(this.vm.vm, intPtr);
         ErrorStruct errorStruct = (ErrorStruct)Marshal.PtrToStructure(intPtr, typeof(ErrorStruct));
         Marshal.FreeHGlobal(intPtr);
         await js.InvokeVoidAsync("aceEditor.session.clearAnnotations");
@@ -166,7 +166,7 @@ public partial class MicrocontrollerSimulator
         }
         VMInterface.Initialize(this.vm.vm, intPtr);
         InitStruct initStruct = (InitStruct)Marshal.PtrToStructure(intPtr, typeof(InitStruct));
-        VMInterface.SetNestedInterrupts(vm.vm, this.NestedInterruptsEnabled);
+        VMInterface.SetNestedInterrupts(this.vm.vm, this.NestedInterruptsEnabled);
         IntPtr clock = initStruct.clock;
         this.breakpoint_step = initStruct.breakpoint_pulse;
 
@@ -177,9 +177,9 @@ public partial class MicrocontrollerSimulator
         }
         this.vm.ts = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ThreadStruct)));
         TimerInterface.timeBeginPeriod(10u);
-        VMInterface.SetIPP(vm.vm, 250);
-        VMInterface.Run(vm.vm, vm.ts);
-        this.timer_id = TimerInterface.timeSetEvent(50u, 0u, clock, vm.vm, 1u);
+        VMInterface.SetIPP(this.vm.vm, 250);
+        VMInterface.Run(this.vm.vm, this.vm.ts);
+        this.timer_id = TimerInterface.timeSetEvent(50u, 0u, clock, this.vm.vm, 1u);
     }
 
     private async Task Stop()
@@ -196,9 +196,9 @@ public partial class MicrocontrollerSimulator
         this.vm_terminate.ts = this.vm.ts;
         this.vm_terminate.vm = this.vm.vm;
         this.vm.vm = VMInterface.CreateVM();
-        VMInterface.SetFilename(vm.vm, this.fileName);
+        VMInterface.SetFilename(this.vm.vm, this.fileName);
         foreach ((Pins first, AInput second) in this.APins.Zip(this.inputs))
-            VMInterface.SetPin(vm.vm, first, Convert.ToByte(second.Tag == "On" ? 1 : 0));
+            VMInterface.SetPin(this.vm.vm, first, Convert.ToByte(second.Tag == "On" ? 1 : 0));
         this.UpdateAValue();
         this.UpdateBValue();
         await this.js.InvokeVoidAsync("removeAllMarkers");
@@ -208,18 +208,17 @@ public partial class MicrocontrollerSimulator
         {
             this.timings[i].x.Add(this.timings.Values.Select(tuple => tuple.x)
                                                      .SelectMany(list => list)
-                                                     .Select(Convert.ToDouble)
                                                      .Max());
             this.timings[i].y.Add(false);
         }
 
         IList<ITrace> preserve = new List<ITrace>();
-        for (int i = 0; i < pinStr.Count(); i++)
+        for (int i = 0; i < this.pinStr.Count(); i++)
         {
             preserve.Add(new Scatter()
             {
-                Name = pinStr.ElementAt(i),
-                Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines,
+                Name = this.pinStr.ElementAt(i),
+                Mode = ModeFlag.Lines,
                 X = this.timings[this.pinStr.ElementAt(i)].x.Cast<object>().ToList(),
                 Y = this.timings[this.pinStr.ElementAt(i)].y.Cast<object>().ToList(),
                 Fill = FillEnum.None
@@ -240,13 +239,13 @@ public partial class MicrocontrollerSimulator
         this.TimingToCsv();
 
         await this.InvokeAsync(this.StateHasChanged);
-        VMInterface.SetNestedInterrupts(vm.vm, this.NestedInterruptsEnabled);
+        VMInterface.SetNestedInterrupts(this.vm.vm, this.NestedInterruptsEnabled);
     }
 
     private void StartStopWatch(bool resume)
     {
         this.startTime = resume ? DateTime.Now - this.timeSpan : DateTime.Now;
-        this.timer = new System.Threading.Timer(Update, null, 0, 100);
+        this.timer = new System.Threading.Timer(this.Update, null, 0, 100);
     }
 
     private void StopStopWatch()
@@ -276,7 +275,7 @@ public partial class MicrocontrollerSimulator
     [JSInvokable]
     public void SetDial(uint value)
     {
-        string val = Strings.StrReverse(Convert.ToString(value, 2).PadLeft(8, '0'));
+        string val = new string(Convert.ToString(value, 2).Reverse().ToArray()).PadLeft(8, '0');
         for (int i = 0; i < this.inputs.Count; i++)
         {
             bool v = val[i] != '0';
@@ -364,7 +363,7 @@ public partial class MicrocontrollerSimulator
         if (VMInterface.IsBroken(this.vm.vm) == 1)
         {
             IntPtr intPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(TagStruct)));
-            VMInterface.GetLine(vm.vm, intPtr);
+            VMInterface.GetLine(this.vm.vm, intPtr);
             TagStruct tagStruct = (TagStruct)Marshal.PtrToStructure(intPtr, typeof(TagStruct));
             Marshal.FreeHGlobal(intPtr);
             currentLine = tagStruct.line;
@@ -388,7 +387,7 @@ public partial class MicrocontrollerSimulator
 
     private void UpdateAValue()
     {
-        byte pin = VMInterface.GetPin(vm.vm, Pins.A);
+        byte pin = VMInterface.GetPin(this.vm.vm, Pins.A);
         string text = Convert.ToString(pin, 16);
         this.AValDec = string.Format("A = {0}", pin);
         this.AValHex = string.Format(text.Length != 1 ? "= x{0}" : "= x0{0}", text);
@@ -397,7 +396,7 @@ public partial class MicrocontrollerSimulator
 
     private async void UpdateBValue()
     {
-        byte pin = VMInterface.GetPin(vm.vm, Pins.B);
+        byte pin = VMInterface.GetPin(this.vm.vm, Pins.B);
         IEnumerable<int> range = Enumerable.Range(0, 8).Select(i => 1 << i);
 
         if (this.SoundOn)
@@ -467,12 +466,12 @@ public partial class MicrocontrollerSimulator
 
     private async Task UpdateDebugOutput()
     {
-        uint numDebugCharsWaiting = VMInterface.GetNumDebugCharsWaiting(vm.vm);
+        uint numDebugCharsWaiting = VMInterface.GetNumDebugCharsWaiting(this.vm.vm);
         if (numDebugCharsWaiting != 0)
         {
             this.sb.EnsureCapacity(Convert.ToInt32(numDebugCharsWaiting));
             VMInterface.GetNextDebugBuffer(this.vm.vm, this.sb, numDebugCharsWaiting);
-            string output = sb.ToString();
+            string output = this.sb.ToString();
             if (numDebugCharsWaiting >= output.Length)
                 await console.Write(output);
             else
