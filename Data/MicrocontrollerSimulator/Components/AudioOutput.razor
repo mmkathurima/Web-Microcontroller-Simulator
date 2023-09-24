@@ -16,9 +16,12 @@
 @code {
     public string Tag { get; set; } = "Off";
 
-    [Parameter] public string Label { get; set; }
-    [Parameter] public string ID { get; set; }
-    [Parameter] public string Src { get; set; }
+    [Parameter]
+    public string Label { get; set; }
+    [Parameter]
+    public string ID { get; set; }
+    [Parameter]
+    public string Src { get; set; }
     private bool play = false;
 
     public async Task ToggleSound(int index)

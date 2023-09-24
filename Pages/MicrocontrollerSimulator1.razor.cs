@@ -1,4 +1,5 @@
-﻿using mcsim.Data.MicrocontrollerSimulator;
+﻿using mcsim.Data;
+using mcsim.Data.MicrocontrollerSimulator;
 using mcsim.Data.MicrocontrollerSimulator.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
@@ -66,15 +67,9 @@ public partial class MicrocontrollerSimulator
             }
         }
     };
-    private dynamic settings = new
-    {
-        YDelta = 1,
-        YSpacing = 1,
-        ShowStartLine = true,
-        ShowStopLine = true
-    };
+    private DiagramSettings settings = new DiagramSettings(1, 1, true, true);
 
-    public static IList<ITrace> GetTracesFromTimingSeries(IList<ITrace> series, dynamic settings)
+    public static IList<ITrace> GetTracesFromTimingSeries(IList<ITrace> series, DiagramSettings settings)
     {
         int yPosition = 0;
         List<Scatter> traces = new List<Scatter>();
@@ -135,7 +130,7 @@ public partial class MicrocontrollerSimulator
         return traces.Cast<ITrace>().ToArray();
     }
 
-    public static Layout ExtendLegendForTimingSeries(IList<ITrace> series, Layout layout, dynamic settings)
+    public static Layout ExtendLegendForTimingSeries(IList<ITrace> series, Layout layout, DiagramSettings settings)
     {
         int yPosition = 0;
         IEnumerable<Scatter> s = series.Cast<Scatter>();

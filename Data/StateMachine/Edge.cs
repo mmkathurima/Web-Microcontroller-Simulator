@@ -4,11 +4,11 @@ namespace mcsim.Data.StateMachine
 {
     public class Edge
     {
-        public string Condition { get; set; }
-        public Node Head { get; set; }
-        public Node Tail { get; set; }
-        public int Priority { get; set; }
-        public string Actions { get; set; }
+        public string Condition { get; }
+        public Node Head { get; }
+        public Node Tail { get; }
+        public int Priority { get; }
+        public string Actions { get; }
 
         [JsonConstructor]
         public Edge(string condition, Node head, Node tail, int priority, string actions)

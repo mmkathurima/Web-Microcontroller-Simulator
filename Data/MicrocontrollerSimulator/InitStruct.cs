@@ -6,7 +6,7 @@ namespace mcsim.Data.MicrocontrollerSimulator
     [StructLayout(LayoutKind.Sequential, Pack = 8)]
     public struct InitStruct
     {
-        public nint clock { get; set; }
-        public nint breakpoint_pulse { get; set; }
+        public nint clock { get; }
+        public nint breakpoint_pulse { get; }
     }
 }

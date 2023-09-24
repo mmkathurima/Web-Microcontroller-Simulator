@@ -65,13 +65,9 @@ namespace mcsim.Data.StateMachine
                     output += graph.Abbrv + "_" + node.Name;
 
                     if (num < graph.NumStates)
-                    {
                         output += ", ";
-                    }
                     else
-                    {
                         output += " } " + graph.Abbrv + "_State;\r\n\r\n";
-                    }
                 }
             }
 
@@ -169,12 +165,11 @@ namespace mcsim.Data.StateMachine
             foreach (var node in graph.Nodes)
             {
                 if (node.Name == "NONAME")
-                {
                     continue;
-                }
+
                 if (!node.PriorityEnabled)
                 {
-                    var _ = node.ForLoopEnabled;
+                    bool _ = node.ForLoopEnabled;
                 }
                 string text7 = text;
                 text = text7 + "   case " + graph.Abbrv + "_" + node.Name + ": ";
@@ -193,9 +188,7 @@ namespace mcsim.Data.StateMachine
                             return "";
                         }
                         if (edge.Tail == node)
-                        {
                             num2++;
-                        }
                     }
                     while (CPriority < num2)
                     {
@@ -223,13 +216,9 @@ namespace mcsim.Data.StateMachine
                                         flag3 = true;
                                     }
                                     if (edge2.Actions.Length > 0 && flag3)
-                                    {
                                         text = text + "\r\n            " + edge2.Actions.Replace("\n", "\r\n            ") + "\r\n         }";
-                                    }
                                     else if (flag3)
-                                    {
                                         text += "\r\n         }";
-                                    }
                                 }
                                 else
                                 {
@@ -335,9 +324,8 @@ namespace mcsim.Data.StateMachine
                     text = text5 + "   case " + graph.Abbrv + "_" + node2.Name + ":\r\n         ";
                     text += node2.Actions.Replace("\n", "\n         ");
                     if (node2.Actions.Length > 2 && node2.Actions[node2.Actions.Length - 2] != '\\')
-                    {
                         text += "\r\n         ";
-                    }
+
                     text += "break;\r\n   ";
                 }
             }

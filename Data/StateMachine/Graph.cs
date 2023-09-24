@@ -5,11 +5,11 @@ namespace mcsim.Data.StateMachine
     public class Graph
     {
         public string Abbrv { get; }
-        public List<Node> Nodes { get; set; }
-        public string Name { get; set; }
+        public List<Node> Nodes { get; }
+        public string Name { get; }
         public string Period { get; }
-        public List<Edge> Edges { get; set; }
-        public Edge InitEdge { get; set; }
+        public List<Edge> Edges { get; }
+        public Edge InitEdge { get; }
         public string GlobalCode { get; }
         public string InitialStateName { get; }
         public int NumStates => Nodes.Count;

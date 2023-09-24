@@ -64,13 +64,7 @@
             }
         }
         };
-    private dynamic settings = new
-    {
-        YDelta = 1,
-        YSpacing = 1,
-        ShowStartLine = true,
-        ShowStopLine = true
-    };
+    private DiagramSettings settings = new DiagramSettings(1, 1, true, true);
 
     private async void UploadFile(IBrowserFile file)
     {

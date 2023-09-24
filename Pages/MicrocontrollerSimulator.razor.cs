@@ -3,7 +3,6 @@ using mcsim.Data.MicrocontrollerSimulator.Components;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
-using Plotly.Blazor.ConfigLib;
 using Plotly.Blazor.Traces;
 using Plotly.Blazor.Traces.ScatterLib;
 using System;

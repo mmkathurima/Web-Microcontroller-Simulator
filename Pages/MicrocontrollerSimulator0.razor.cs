@@ -97,7 +97,7 @@ public partial class MicrocontrollerSimulator
                 array2 = new string[num2];
                 string path;
                 Regex regex = new Regex(":(\\d*):", RegexOptions.IgnoreCase);
-                List<dynamic> err = new List<dynamic>();
+                List<ErrorLine> err = new List<ErrorLine>();
                 for (int j = 0; j < num2; j++)
                 {
                     array2[j] = Marshal.PtrToStringAnsi(errorStruct.errors[j]);
@@ -105,17 +105,12 @@ public partial class MicrocontrollerSimulator
                     array2[j] = array2[j].Replace(path, Path.GetFileName(path));
                     MatchCollection matchCollection = regex.Matches(array2[j]);
                     isWarning = array2[j].Split(':').Length > 2 && array2[j].Split(':')[2].Trim().ToLower() == "warning";
-                    err.AddRange(matchCollection.Select((x) => new
-                    {
-                        row = Convert.ToInt32(x.Groups[1].Value) - 1,
-                        column = 0,
-                        text = array2[j],
-                        type = isWarning ? "warning" : "error" // also warning and information
-                    }));
-
+                    err.AddRange(matchCollection.Select(x => new ErrorLine(Convert.ToInt32(x.Groups[1].Value) - 1,
+                        0, array2[j], isWarning ? "warning" : "error" // also warning and information
+                    )));
                 }
-                await js.InvokeVoidAsync("aceEditor.session.setAnnotations", err);
-                await js.InvokeVoidAsync("console.log", err, err.Count);
+                await this.js.InvokeVoidAsync("aceEditor.session.setAnnotations", err);
+                await this.js.InvokeVoidAsync("console.log", err, err.Count);
 
                 for (int k = 0; k < array2.Length - 1; k++)
                 {
@@ -144,7 +139,7 @@ public partial class MicrocontrollerSimulator
         if (array2.Select(x => x.ToLower()).Contains(@"could not find include file ""rims.h"""))
         {
             await this.ClearTerminal();
-            await DoCompile();
+            await this.DoCompile();
         }
         return flag;
     }
@@ -224,7 +219,7 @@ public partial class MicrocontrollerSimulator
             preserve.Add(new Scatter()
             {
                 Name = pinStr.ElementAt(i),
-                Mode = ModeFlag.Lines,
+                Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines,
                 X = this.timings[this.pinStr.ElementAt(i)].x.Cast<object>().ToList(),
                 Y = this.timings[this.pinStr.ElementAt(i)].y.Cast<object>().ToList(),
                 Fill = FillEnum.None

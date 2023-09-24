@@ -5,7 +5,7 @@ namespace mcsim.Data.StateMachine
 {
     public class Node
     {
-        public string Name { get; set; }
+        public string Name { get; }
         public bool ForLoopEnabled { get; }
         public LoopStruct Loop { get; set; }
         public bool PriorityEnabled { get; }

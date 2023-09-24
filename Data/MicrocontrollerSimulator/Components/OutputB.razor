@@ -8,8 +8,10 @@
 @code {
     public string Tag { get; set; } = "Off";
 
-    [Parameter] public string Label { get; set; }
-    [Parameter] public string ID { get; set; }
+    [Parameter] 
+    public string Label { get; set; }
+    [Parameter] 
+    public string ID { get; set; }
 
     public async Task ToggleLed()
     {
